@@ -9,14 +9,46 @@ Probably the most complete public KBBI API you will ever find.
 
 ## Documentation
 
-- Swagger docs: [http://something.com/api/v1/entry/aaa](http://something.com/api/v1/entry/aaa)
+- Swagger docs: [https://kbbi.raf555.dev/swagger/index.html](https://kbbi.raf555.dev/swagger/index.html)
 
-- Sample API endpoint: [http://something.com/api/v1/entry/aaa](http://something.com/api/v1/entry/aaa)
+- Sample API endpoint: [https://kbbi.raf555.dev/api/v1/entry/apel](https://kbbi.raf555.dev/api/v1/entry/apel)
 
-- Sample data:
+- Sample response:
 
 ```json
-{}
+{
+  "lemma": "bermalas-malasan",
+  "entries": [
+    {
+      "entry": "ber.ma.las-ma.las.an",
+      "baseWord": "malas",
+      "entryVariants": [],
+      "pronunciation": "",
+      "definitions": [
+        {
+          "definition": "bermalas-malas",
+          "referencedLemma": "",
+          "labels": [
+            {
+              "code": "v",
+              "name": "Verba",
+              "kind": "Kelas Kata"
+            }
+          ],
+          "usageExamples": [
+            "dia selalu ~ saat hari libur"
+          ]
+        }
+      ],
+      "nonStandardWords": [],
+      "variants": [],
+      "compoundWords": [],
+      "derivedWords": [],
+      "proverbs": [],
+      "metaphors": []
+    }
+  ]
+}
 ```
 
 

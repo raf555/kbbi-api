@@ -77,7 +77,7 @@ func (d *Dictionary) Stats() assets_model.Stats {
 
 func (d *Dictionary) Lemma(lemma string, entryNoPtr *int) (kbbi.Lemma, error) {
 	if lemma == "" {
-
+		return kbbi.Lemma{}, ErrUnexpectedEmptyLemma
 	}
 
 	if len(lemma) > d.longestLemmaLength {
@@ -110,10 +110,6 @@ func (d *Dictionary) Lemma(lemma string, entryNoPtr *int) (kbbi.Lemma, error) {
 
 func (d *Dictionary) RandomLemma() (kbbi.Lemma, error) {
 	randomIdx := rand.IntN(len(d.lemmas))
-
-	if !d.indexInDictRange(randomIdx) {
-		return kbbi.Lemma{}, fmt.Errorf("%w: %d", ErrUnexpectedRandomIndex, randomIdx)
-	}
 
 	return d.lemmas[randomIdx], nil
 }
