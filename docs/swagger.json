@@ -1,0 +1,260 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/v1/entry/_random": {
+            "get": {
+                "description": "Redirect to the random lemma",
+                "tags": [
+                    "entry"
+                ],
+                "summary": "Get Random Lemma",
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "$ref": "#/definitions/kbbi.Lemma"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/entry/_wotd": {
+            "get": {
+                "description": "Redirect to the lemma of the day",
+                "tags": [
+                    "entry"
+                ],
+                "summary": "Get Lemma of The Day",
+                "responses": {
+                    "302": {
+                        "description": "Found",
+                        "schema": {
+                            "$ref": "#/definitions/kbbi.Lemma"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/entry/{entry}": {
+            "get": {
+                "description": "Show the information of provided lemma",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "entry"
+                ],
+                "summary": "Show Lemma Information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Lemma",
+                        "name": "entry",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Lemma's entry number (optional). Start from 1.",
+                        "name": "entryNo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/kbbi.Lemma"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "414": {
+                        "description": "Request URI Too Long",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Error"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "kbbi.Entry": {
+            "type": "object",
+            "properties": {
+                "baseWord": {
+                    "description": "BaseWord is the base word for a given entry (if any).\nI.e. `kata dasar`.\nE.g. `menyukai` has a base word of `suka`.",
+                    "type": "string"
+                },
+                "compoundWords": {
+                    "description": "CompoundWords contains the compound words of the entry (if any).\nI.e. `gabungan kata`.\nE.g. `kacang` has a compound word of `kacang atom`.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "definitions": {
+                    "description": "Definitions contains the meaning of the entry.\nA single entry can have multiple meanings or definitions.\nE.g. `suka` has multiple meanings depending on the context.\n\nEach definition has its own information, such as labels and usage examples.\n\nThe definitions can be empty depending on the entry.\nIf it is empty, usually it can be referred from the information of the other fields (e.g. BaseWord).",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kbbi.EntryDefinition"
+                    }
+                },
+                "derivedWords": {
+                    "description": "DerivedWords contains the derived words of the entry (if any).\nI.e. `kata turunan`.\nE.g. `suka` has a derived word of `menyukai`.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "entry": {
+                    "description": "Entry is the entry word. E.g. `apel (1)`.",
+                    "type": "string"
+                },
+                "entryVariants": {
+                    "description": "EntryVariants contains variants of how the entry can be referred (if any).\nE.g. `terselip` can be alternatively referred as `terselip ke luar`.\n\nIt is possible that the variant does not have any entries in the dictionary.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "metaphors": {
+                    "description": "Metaphors contains metaphors of this entry (if any).\nI.e. `kiasan`.\nE.g. `leher` is used in `leher terasa panjang` metaphor.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "nonStandardWords": {
+                    "description": "NonStandardWords contains the non-standard forms of the entry (if any).\nI.e. `bentuk tidak baku`.\nE.g. `apotek` has a non-standard form of `apotik`.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "pronunciation": {
+                    "description": "Pronunciation describes the way in which a word is prononunced (if any).\nE.g. `apel` can be prononunced as apêl.",
+                    "type": "string"
+                },
+                "proverbs": {
+                    "description": "Proverbs contains the proverbs of the entry (if any).\nI.e. `peribahasa`.\nE.g. `kacang` is used in `kacang lupa akan kulitnya` proverb.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "variants": {
+                    "description": "WordVariants contains the alternative words of the entry (if any).\nI.e. `varian`.\nE.g. `ude` has a alternative word of `udeh`.\n\nThe difference between WordVariants and `EntryVariants` is that\nWordVariants guaranteed to have at least 1 entry in the dictionary.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "kbbi.EntryDefinition": {
+            "type": "object",
+            "properties": {
+                "definition": {
+                    "description": "Definition contains the meaning of the entry.",
+                    "type": "string"
+                },
+                "labels": {
+                    "description": "Labels contains the label of this definition if present.\nIn the dictionary, they are usually placed at the front of the meaning.\nE.g. `su.ka a cak mudah sekali ...; kerap kali ...`",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kbbi.EntryLabel"
+                    }
+                },
+                "referencedLemma": {
+                    "description": "ReferencedLemma contains referenced lemma in the definition if present.\n\nSome entries have no direct meaning, so instead it refers the other lemma as the definition.\nUsually it has the definition of `lihat [lemma]`.\n\nIn other case, the entry is usually a non-standard form of the other lemma.\nUsually it has the definition of `bentuk tidak baku dari [lemma]`.",
+                    "type": "string"
+                },
+                "usageExamples": {
+                    "description": "UsageExamples contains usage example of the entry for this meaning if any.\nIn the dictionary, they are usually placed at the end of the meaning.\nE.g. `su.ka a cak mudah sekali ...; kerap kali ...: memang dia -- lupa; pensil semacam ini -- patah`",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "kbbi.EntryLabel": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Code is the label short form.\nE.g. `n`, `Huk`, `cak`, etc.",
+                    "type": "string"
+                },
+                "kind": {
+                    "description": "Kind is the label kind.\nE.g. `Kelas Kata`, `Bidang`, `Ragam`, etc.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Code is the label actual name.\nE.g. `nomina`, `Hukum`, `cakapan`, etc.",
+                    "type": "string"
+                }
+            }
+        },
+        "kbbi.Lemma": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "description": "Entries holds all entries information for this lemma.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/kbbi.Entry"
+                    }
+                },
+                "lemma": {
+                    "description": "Lemma is a single dictionary entry. E.g. `apel`.",
+                    "type": "string"
+                }
+            }
+        },
+        "response.Error": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,233 @@
+definitions:
+  kbbi.Entry:
+    properties:
+      baseWord:
+        description: |-
+          BaseWord is the base word for a given entry (if any).
+          I.e. `kata dasar`.
+          E.g. `menyukai` has a base word of `suka`.
+        type: string
+      compoundWords:
+        description: |-
+          CompoundWords contains the compound words of the entry (if any).
+          I.e. `gabungan kata`.
+          E.g. `kacang` has a compound word of `kacang atom`.
+        items:
+          type: string
+        type: array
+      definitions:
+        description: |-
+          Definitions contains the meaning of the entry.
+          A single entry can have multiple meanings or definitions.
+          E.g. `suka` has multiple meanings depending on the context.
+
+          Each definition has its own information, such as labels and usage examples.
+
+          The definitions can be empty depending on the entry.
+          If it is empty, usually it can be referred from the information of the other fields (e.g. BaseWord).
+        items:
+          $ref: '#/definitions/kbbi.EntryDefinition'
+        type: array
+      derivedWords:
+        description: |-
+          DerivedWords contains the derived words of the entry (if any).
+          I.e. `kata turunan`.
+          E.g. `suka` has a derived word of `menyukai`.
+        items:
+          type: string
+        type: array
+      entry:
+        description: Entry is the entry word. E.g. `apel (1)`.
+        type: string
+      entryVariants:
+        description: |-
+          EntryVariants contains variants of how the entry can be referred (if any).
+          E.g. `terselip` can be alternatively referred as `terselip ke luar`.
+
+          It is possible that the variant does not have any entries in the dictionary.
+        items:
+          type: string
+        type: array
+      metaphors:
+        description: |-
+          Metaphors contains metaphors of this entry (if any).
+          I.e. `kiasan`.
+          E.g. `leher` is used in `leher terasa panjang` metaphor.
+        items:
+          type: string
+        type: array
+      nonStandardWords:
+        description: |-
+          NonStandardWords contains the non-standard forms of the entry (if any).
+          I.e. `bentuk tidak baku`.
+          E.g. `apotek` has a non-standard form of `apotik`.
+        items:
+          type: string
+        type: array
+      pronunciation:
+        description: |-
+          Pronunciation describes the way in which a word is prononunced (if any).
+          E.g. `apel` can be prononunced as apêl.
+        type: string
+      proverbs:
+        description: |-
+          Proverbs contains the proverbs of the entry (if any).
+          I.e. `peribahasa`.
+          E.g. `kacang` is used in `kacang lupa akan kulitnya` proverb.
+        items:
+          type: string
+        type: array
+      variants:
+        description: |-
+          WordVariants contains the alternative words of the entry (if any).
+          I.e. `varian`.
+          E.g. `ude` has a alternative word of `udeh`.
+
+          The difference between WordVariants and `EntryVariants` is that
+          WordVariants guaranteed to have at least 1 entry in the dictionary.
+        items:
+          type: string
+        type: array
+    type: object
+  kbbi.EntryDefinition:
+    properties:
+      definition:
+        description: Definition contains the meaning of the entry.
+        type: string
+      labels:
+        description: |-
+          Labels contains the label of this definition if present.
+          In the dictionary, they are usually placed at the front of the meaning.
+          E.g. `su.ka a cak mudah sekali ...; kerap kali ...`
+        items:
+          $ref: '#/definitions/kbbi.EntryLabel'
+        type: array
+      referencedLemma:
+        description: |-
+          ReferencedLemma contains referenced lemma in the definition if present.
+
+          Some entries have no direct meaning, so instead it refers the other lemma as the definition.
+          Usually it has the definition of `lihat [lemma]`.
+
+          In other case, the entry is usually a non-standard form of the other lemma.
+          Usually it has the definition of `bentuk tidak baku dari [lemma]`.
+        type: string
+      usageExamples:
+        description: |-
+          UsageExamples contains usage example of the entry for this meaning if any.
+          In the dictionary, they are usually placed at the end of the meaning.
+          E.g. `su.ka a cak mudah sekali ...; kerap kali ...: memang dia -- lupa; pensil semacam ini -- patah`
+        items:
+          type: string
+        type: array
+    type: object
+  kbbi.EntryLabel:
+    properties:
+      code:
+        description: |-
+          Code is the label short form.
+          E.g. `n`, `Huk`, `cak`, etc.
+        type: string
+      kind:
+        description: |-
+          Kind is the label kind.
+          E.g. `Kelas Kata`, `Bidang`, `Ragam`, etc.
+        type: string
+      name:
+        description: |-
+          Code is the label actual name.
+          E.g. `nomina`, `Hukum`, `cakapan`, etc.
+        type: string
+    type: object
+  kbbi.Lemma:
+    properties:
+      entries:
+        description: Entries holds all entries information for this lemma.
+        items:
+          $ref: '#/definitions/kbbi.Entry'
+        type: array
+      lemma:
+        description: Lemma is a single dictionary entry. E.g. `apel`.
+        type: string
+    type: object
+  response.Error:
+    properties:
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/entry/_random:
+    get:
+      description: Redirect to the random lemma
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/kbbi.Lemma'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Get Random Lemma
+      tags:
+      - entry
+  /api/v1/entry/_wotd:
+    get:
+      description: Redirect to the lemma of the day
+      responses:
+        "302":
+          description: Found
+          schema:
+            $ref: '#/definitions/kbbi.Lemma'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Get Lemma of The Day
+      tags:
+      - entry
+  /api/v1/entry/{entry}:
+    get:
+      consumes:
+      - application/json
+      description: Show the information of provided lemma
+      parameters:
+      - description: Lemma
+        in: path
+        name: entry
+        required: true
+        type: string
+      - description: Lemma's entry number (optional). Start from 1.
+        in: query
+        minimum: 1
+        name: entryNo
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/kbbi.Lemma'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Error'
+        "414":
+          description: Request URI Too Long
+          schema:
+            $ref: '#/definitions/response.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Error'
+      summary: Show Lemma Information
+      tags:
+      - entry
+swagger: "2.0"
