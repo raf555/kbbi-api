@@ -110,7 +110,7 @@ type (
 		// E.g. `n`, `Huk`, `cak`, etc.
 		Code string `json:"code"`
 
-		// Code is the label actual name.
+		// Name is the label actual name.
 		// E.g. `nomina`, `Hukum`, `cakapan`, etc.
 		Name string `json:"name"`
 
