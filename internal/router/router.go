@@ -22,6 +22,7 @@ func New(
 ) *gin.Engine {
 
 	router := gin.New()
+	router.UseRawPath = true
 
 	{
 		router.Use(sloggin.New(logger))
