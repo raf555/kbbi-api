@@ -22,9 +22,14 @@ func New(env *config.Configuration) (*Repository, error) {
 		return nil, fmt.Errorf("error reading the WOTD db: %w", err)
 	}
 
+	loc, err := time.LoadLocation("Asia/Jakarta")
+	if err != nil {
+		return nil, fmt.Errorf("failed loading Asia/Jakarta time location: %w", err)
+	}
+
 	repo := &Repository{
 		lemmaIndexes: lemmaIndexes,
-		epoch:        time.Date(2022, 10, 30, 0, 0, 0, 0, time.Local).UnixMilli(),
+		epoch:        time.Date(2022, 10, 30, 0, 0, 0, 0, loc).UnixMilli(),
 	}
 
 	return repo, nil
