@@ -63,6 +63,15 @@ The dictionary is mirrored from [Official KBBI Application][] `v1.0.0` with some
 
 The dictionary used by the server will be updated as soon as new version of the application is released.
 
+### Copyright and Data Ownership
+
+> [!WARNING]  
+> All data in this dictionary is fully owned by **Badan Pengembangan dan Pembinaan Bahasa, Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi Republik Indonesia**.
+> 
+> The commercial use of this dataset is strictly prohibited and subject to legal provisions under: **Indonesian Law No. 28 of 2014 on Copyright**.
+>
+> The accompanying code is licensed separately and is not subject to the same restrictions as the dictionary data. The code is provided under MIT License, allowing its use, modification, and distribution according to the terms of that license.
+
 ## Issues
 
 For any issues, be it from the API server or from the dictionary, or questions or inquiries or suggestions, feel free to raise a new issue. I'll try to look into it as soon as possible.
