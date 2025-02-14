@@ -58,6 +58,8 @@ Latest edition: `Oktober 2023`
 
 The dictionary is mirrored from [Official KBBI Application][] `v1.0.0` with some hand-edited data and customly decoded for author's requirement.
 
+Notable changes: html tagged string is converted to its respective unicode character.
+
 > [!NOTE]  
 > You might encounter some lemmas that are having different information from the official KBBI website (or even missing). I tend to use the official site as the source of truth, so in case you find some, please make a new issue, I'll try to get it fixed ASAP.
 

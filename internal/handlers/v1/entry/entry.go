@@ -51,7 +51,7 @@ func (h *Handler) Entry(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, data)
+	ctx.PureJSON(http.StatusOK, data)
 }
 
 func (h *Handler) getEntryNo(ctx *gin.Context) (*int, bool) {
