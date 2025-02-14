@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path"
 
@@ -24,13 +23,7 @@ func Read(filename string, key, nonce []byte) *reader {
 }
 
 func (r *reader) To(target any) error {
-	f, err := os.Open(path.Join("./assets/", r.filename))
-	if err != nil {
-		return fmt.Errorf("error opening file: %w", err)
-	}
-	defer f.Close()
-
-	ciphertext, err := io.ReadAll(f)
+	ciphertext, err := os.ReadFile(path.Join("./assets/", r.filename))
 	if err != nil {
 		return fmt.Errorf("error reading file: %w", err)
 	}
