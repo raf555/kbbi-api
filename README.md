@@ -58,21 +58,7 @@ Latest edition: `Oktober 2023`
 
 The dictionary is mirrored from [Official KBBI Application][] `v1.0.0` with some hand-edited data and customly decoded for author's requirement.
 
-Notable changes: html tagged string is converted to its respective unicode character.
-
-> [!NOTE]  
-> You might encounter some lemmas that are having different information from the official KBBI website (or even missing). I tend to use the official site as the source of truth, so in case you find some, please make a new issue, I'll try to get it fixed ASAP.
-
 The dictionary used by the server will be updated as soon as new version of the application is released.
-
-### Copyright and Data Ownership
-
-> [!WARNING]  
-> All data in this dictionary is fully owned by **Badan Pengembangan dan Pembinaan Bahasa, Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi Republik Indonesia**.
-> 
-> The commercial use of this dataset is strictly prohibited and subject to legal provisions under: **Indonesian Law No. 28 of 2014 on Copyright**.
->
-> The accompanying code is licensed separately and is not subject to the same restrictions as the dictionary data. The code is provided under MIT License, allowing its use, modification, and distribution according to the terms of that license.
 
 ## Issues
 
@@ -95,7 +81,7 @@ I did a bit of research to find a free public KBBI API on the internet, but most
 
 Since I'm too lazy to make a Cloudflare bypasser, I decided to make this API server. Since I want to make the information provided by this API to be as complete as possible and as fast as possible (for my chatbot), I opted for looking into the [Official KBBI Application][] since it is offline and it should have all the information I need.
 
-Long story short, I was able to scrap all lemmas from there *(I won't tell how I did this though (yet?))*. All data used in this API is completely from the application (with some additional hand-edited data). They are then decoded and parsed to fit my requirement. It ends up perfectly as I wanted. The final product is the one you see on the API response.
+Long story short, I was able to scrap all lemmas from there. All data used in this API is completely from the application (with some additional hand-edited data). They are then decoded and parsed to fit my requirement. It ends up perfectly as I wanted. The final product is the one you see on the API response.
 
 Feel free to use the API as much as you want, there is no rate limiting as of now (**not yet, at least**). As long as the server can handle the traffic and does not exceed the free resources usage on the cloud provider I used, lol.
 </details>
@@ -103,3 +89,12 @@ Feel free to use the API as much as you want, there is no rate limiting as of no
 [Official KBBI Website]: https://kbbi.kemdikbud.go.id/
 
 [Official KBBI Application]: https://play.google.com/store/apps/details?id=yuku.kbbi5
+
+## Copyright and Data Ownership
+
+> [!WARNING]  
+> All data in this dictionary is fully owned by **Badan Pengembangan dan Pembinaan Bahasa, Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi Republik Indonesia**.
+> 
+> The commercial use of this dataset is strictly prohibited and subject to legal provisions under: **Indonesian Law No. 28 of 2014 on Copyright**.
+>
+> The accompanying code is licensed separately and is not subject to the same restrictions as the dictionary data. The code is provided under MIT License, allowing its use, modification, and distribution according to the terms of that license.
