@@ -66,6 +66,18 @@ For any issues, be it from the API server or from the dictionary, or questions o
 
 If you are willing to open PR to fix any open issues, I'm more than welcome to review it.
 
+## Run the Application
+
+The dictionary assets are encrypted (for now). You'll need the assets to run the server, therefore provided samples in the [assets/sample](assets/sample) directory.
+
+You can rename the [.env.sample](.env.sample) file to be `.env` and run the server directly with this command.
+
+```sh
+go run main.go wire_gen.go
+```
+
+Once success, you should be able to open http://localhost:8888 in your browser.
+
 ## Background and Motivation
 
 **TL;DR**. Official KBBI website sucks, I build my own API.

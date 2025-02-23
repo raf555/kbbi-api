@@ -20,6 +20,7 @@ type (
 
 		AssetsEncryptionKey key.HexString `env:"ASSETS_ENCRYPTION_KEY, required"`
 		AssetsEncryptionIV  key.HexString `env:"ASSETS_ENCRYPTION_IV, required"`
+		AssetsDirectory     string        `env:"ASSETS_DIRECTORY, default=./assets/"`
 	}
 )
 
