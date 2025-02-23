@@ -18,7 +18,7 @@ type (
 
 func New(env *config.Configuration) (*Repository, error) {
 	var lemmaIndexes []int
-	if err := assets.Read("wotd.db", env.AssetsEncryptionKey, env.AssetsEncryptionIV).To(&lemmaIndexes); err != nil {
+	if err := assets.Read("wotd.db", env.AssetsDirectory, env.AssetsEncryptionKey, env.AssetsEncryptionIV).To(&lemmaIndexes); err != nil {
 		return nil, fmt.Errorf("error reading the WOTD db: %w", err)
 	}
 

@@ -135,7 +135,7 @@ definitions:
         type: string
       name:
         description: |-
-          Code is the label actual name.
+          Name is the label actual name.
           E.g. `nomina`, `Hukum`, `cakapan`, etc.
         type: string
     type: object

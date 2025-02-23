@@ -1,0 +1,118 @@
+{
+    "stats": {
+        "edition": "2024",
+        "entryCount": 1,
+        "lemmaCount": 1
+    },
+    "lemmas": [
+        {
+            "lemma": "contoh",
+            "entries": [
+                {
+                    "entry": "con.toh",
+                    "baseWord": "",
+                    "entryVariants": [],
+                    "pronunciation": "",
+                    "definitions": [
+                        {
+                            "definition": "barang atau sebagian dari barang yang rupa, macam, dan keadaannya sama dengan semua barang yang ada; barang yang dapat mewakili barang yang lain karena sama sifat-sifatnya",
+                            "referencedLemma": "",
+                            "labels": [
+                                {
+                                    "code": "n",
+                                    "name": "Nomina",
+                                    "kind": "Kelas Kata"
+                                }
+                            ],
+                            "usageExamples": [
+                                "barang-barang dalam pameran itu tidak dijual, hanya dipajang sebagai --",
+                                "beras ini tidak sesuai dengan --nya"
+                            ]
+                        },
+                        {
+                            "definition": "sesuatu yang akan atau yang disediakan untuk ditiru atau diikuti",
+                            "referencedLemma": "",
+                            "labels": [
+                                {
+                                    "code": "n",
+                                    "name": "Nomina",
+                                    "kind": "Kelas Kata"
+                                }
+                            ],
+                            "usageExamples": [
+                                "Nenek memberi -- bagaimana cara merangkai bunga",
+                                "buku itu berisi berbagai macam -- surat-menyurat"
+                            ]
+                        },
+                        {
+                            "definition": "pola (untuk membatik, membuat pakaian, dan sebagainya)",
+                            "referencedLemma": "",
+                            "labels": [
+                                {
+                                    "code": "n",
+                                    "name": "Nomina",
+                                    "kind": "Kelas Kata"
+                                }
+                            ],
+                            "usageExamples": [
+                                "orang membatik ada yang memakai --, ada yang tidak",
+                                "dalam majalah wanita selalu dimuat -- menggunting baju"
+                            ]
+                        },
+                        {
+                            "definition": "model (rumah, pesawat terbang, dan sebagainya dalam bentuk kecil untuk memperlihatkan bagaimana rupa rumah, pesawat terbang, dan sebagainya yang sesungguhnya atau yang akan dibuat)",
+                            "referencedLemma": "",
+                            "labels": [
+                                {
+                                    "code": "n",
+                                    "name": "Nomina",
+                                    "kind": "Kelas Kata"
+                                }
+                            ],
+                            "usageExamples": [
+                                "kami diajak melihat pameran -- rumah sederhana"
+                            ]
+                        },
+                        {
+                            "definition": "teladan (tentang kelakuan, perbuatan, dan sebagainya); hal (seperti peristiwa) yang menjadi teladan",
+                            "referencedLemma": "",
+                            "labels": [
+                                {
+                                    "code": "n",
+                                    "name": "Nomina",
+                                    "kind": "Kelas Kata"
+                                }
+                            ],
+                            "usageExamples": [
+                                "sikap dan perilaku guru menjadi -- bagi murid",
+                                "kegiatannya dalam bekerja menjadi -- bagi teman-temannya"
+                            ]
+                        }
+                    ],
+                    "nonStandardWords": [],
+                    "variants": [],
+                    "compoundWords": [
+                        "contoh bentuk",
+                        "contoh huruf",
+                        "contoh kenyataan",
+                        "contoh pembelian",
+                        "contoh penawaran",
+                        "contoh tipe"
+                    ],
+                    "derivedWords": [
+                        "mempercontohkan",
+                        "mencontoh",
+                        "mencontohi",
+                        "mencontohkan",
+                        "pemercontoh",
+                        "pemercontohan",
+                        "percontoh",
+                        "percontohan"
+                    ],
+                    "proverbs": [],
+                    "metaphors": []
+                }
+            ]
+        }
+    ]
+}

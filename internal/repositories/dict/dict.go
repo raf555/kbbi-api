@@ -41,7 +41,7 @@ func New(env *config.Configuration, logger *slog.Logger, wotd *wotd.Repository) 
 	start := time.Now()
 	logger.Info("Started reading dictionary asset")
 	var assetData assets_model.AssetData
-	if err := assets.Read("dict.db", env.AssetsEncryptionKey, env.AssetsEncryptionIV).To(&assetData); err != nil {
+	if err := assets.Read("dict.db", env.AssetsDirectory, env.AssetsEncryptionKey, env.AssetsEncryptionIV).To(&assetData); err != nil {
 		return nil, fmt.Errorf("error reading the dictionary: %w", err)
 	}
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))

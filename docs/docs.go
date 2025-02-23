@@ -238,7 +238,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "description": "Code is the label actual name.\nE.g. ` + "`" + `nomina` + "`" + `, ` + "`" + `Hukum` + "`" + `, ` + "`" + `cakapan` + "`" + `, etc.",
+                    "description": "Name is the label actual name.\nE.g. ` + "`" + `nomina` + "`" + `, ` + "`" + `Hukum` + "`" + `, ` + "`" + `cakapan` + "`" + `, etc.",
                     "type": "string"
                 }
             }

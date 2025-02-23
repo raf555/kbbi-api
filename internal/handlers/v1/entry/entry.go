@@ -2,7 +2,6 @@ package entry
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -29,6 +28,7 @@ import (
 func (h *Handler) Entry(ctx *gin.Context) {
 	entryNo, ok := h.getEntryNo(ctx)
 	if !ok {
+		ctx.JSON(http.StatusBadRequest, response.Error{Message: errUnexpectedEntryNo})
 		return
 	}
 
@@ -60,13 +60,11 @@ func (h *Handler) getEntryNo(ctx *gin.Context) (*int, bool) {
 		return nil, true
 	}
 
-	entryNoInt64, err := strconv.ParseInt(entryQuery, 10, 64)
+	entryNoInt64, err := strconv.ParseInt(entryQuery, 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, response.Error{Message: fmt.Errorf("unexpected `entryNo` query: %w", err)})
 		return nil, false
 	}
 
 	entryNo := int(entryNoInt64)
-
 	return &entryNo, true
 }

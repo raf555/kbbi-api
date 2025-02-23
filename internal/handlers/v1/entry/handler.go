@@ -1,6 +1,7 @@
 package entry
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -14,6 +15,10 @@ type (
 		logger *slog.Logger
 		dict   *dict.Dictionary
 	}
+)
+
+var (
+	errUnexpectedEntryNo = errors.New("unexpected `entryNo` query")
 )
 
 func New(logger *slog.Logger, dict *dict.Dictionary) *Handler {

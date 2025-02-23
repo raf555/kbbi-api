@@ -13,17 +13,17 @@ import (
 
 type (
 	reader struct {
-		filename   string
-		key, nonce []byte
+		filename, dir string
+		key, nonce    []byte
 	}
 )
 
-func Read(filename string, key, nonce []byte) *reader {
-	return &reader{filename, key, nonce}
+func Read(filename, dir string, key, nonce []byte) *reader {
+	return &reader{filename, dir, key, nonce}
 }
 
 func (r *reader) To(target any) error {
-	ciphertext, err := os.ReadFile(path.Join("./assets/", r.filename))
+	ciphertext, err := os.ReadFile(path.Join(r.dir, r.filename))
 	if err != nil {
 		return fmt.Errorf("error reading file: %w", err)
 	}
