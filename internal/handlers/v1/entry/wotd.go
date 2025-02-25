@@ -19,7 +19,7 @@ func (h *Handler) WOTD(ctx *gin.Context) {
 	wotd, err := h.dict.LemmaOfTheDay()
 	if err != nil {
 		h.logger.ErrorContext(ctx, "Unexpected WOTD failure", slog.String("error", err.Error()))
-		ctx.JSON(http.StatusInternalServerError, response.Error{Message: response.ErrInternalServerError})
+		ctx.JSON(http.StatusInternalServerError, response.InternalServerError)
 		return
 	}
 

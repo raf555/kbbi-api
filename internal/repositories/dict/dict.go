@@ -108,10 +108,9 @@ func (d *Dictionary) Lemma(lemma string, entryNoPtr *int) (kbbi.Lemma, error) {
 	return lemmaData, nil
 }
 
-func (d *Dictionary) RandomLemma() (kbbi.Lemma, error) {
+func (d *Dictionary) RandomLemma() kbbi.Lemma {
 	randomIdx := rand.IntN(len(d.lemmas))
-
-	return d.lemmas[randomIdx], nil
+	return d.lemmas[randomIdx]
 }
 
 func (d *Dictionary) LemmaOfTheDay() (kbbi.Lemma, error) {

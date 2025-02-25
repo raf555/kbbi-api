@@ -24,7 +24,7 @@ func InitializeDependency() (*MainDependency, error) {
 	if err != nil {
 		return nil, err
 	}
-	slogLogger := logger.NewLogger()
+	slogLogger := logger.New()
 	repository, err := wotd.New(configuration)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func InitializeDependency() (*MainDependency, error) {
 var (
 	noDepSet = wire.NewSet(config.ReadConfig)
 
-	mainDepSet = wire.NewSet(logger.NewLogger)
+	mainDepSet = wire.NewSet(logger.New)
 
 	repoSet = wire.NewSet(wotd.New, dict.New)
 

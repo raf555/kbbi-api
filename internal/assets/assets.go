@@ -44,6 +44,5 @@ func (r *reader) To(target any) error {
 	}
 
 	gz.Close()
-
 	return nil
 }

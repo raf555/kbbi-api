@@ -7,7 +7,7 @@ import (
 
 type (
 	Error struct {
-		Message error `json:"message" swaggertype:"string"`
+		Err error `json:"message" swaggertype:"string"`
 	}
 
 	internalError struct {
@@ -15,13 +15,17 @@ type (
 	}
 )
 
+var (
+	InternalServerError = Error{errors.New("internal server error")}
+	MethodNotAllowed    = Error{errors.New("method not allowed")}
+	NotFound            = Error{errors.New("not found")}
+)
+
 func (e Error) MarshalJSON() ([]byte, error) {
-	i := internalError{e.Message.Error()}
+	i := internalError{e.Err.Error()}
 	return json.Marshal(i)
 }
 
-var (
-	ErrInternalServerError = errors.New("internal server error")
-	ErrMethodNotAllowed    = errors.New("method not allowed")
-	ErrNotFound            = errors.New("not found")
-)
+func ErrorOf(err error) Error {
+	return Error{Err: err}
+}

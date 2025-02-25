@@ -7,7 +7,7 @@ import (
 	slogformatter "github.com/samber/slog-formatter"
 )
 
-func NewLogger() *slog.Logger {
+func New() *slog.Logger {
 	timeDurationFormatter := slogformatter.FormatByKind(slog.KindDuration, func(v slog.Value) slog.Value {
 		return slog.StringValue(v.Duration().String())
 	})

@@ -29,15 +29,15 @@ func New(
 
 		router.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
 			logger.ErrorContext(ctx, "Panic occured", slog.Any("panic", err))
-			ctx.JSON(http.StatusInternalServerError, response.Error{Message: response.ErrInternalServerError})
+			ctx.JSON(http.StatusInternalServerError, response.InternalServerError)
 		}))
 
 		router.NoMethod(func(ctx *gin.Context) {
-			ctx.JSON(http.StatusMethodNotAllowed, response.Error{Message: response.ErrMethodNotAllowed})
+			ctx.JSON(http.StatusMethodNotAllowed, response.MethodNotAllowed)
 		})
 
 		router.NoRoute(func(ctx *gin.Context) {
-			ctx.JSON(http.StatusNotFound, response.Error{Message: response.ErrNotFound})
+			ctx.JSON(http.StatusNotFound, response.NotFound)
 		})
 	}
 

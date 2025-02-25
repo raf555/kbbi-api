@@ -20,7 +20,7 @@ var (
 	)
 
 	mainDepSet = wire.NewSet(
-		logger.NewLogger,
+		logger.New,
 	)
 
 	repoSet = wire.NewSet(

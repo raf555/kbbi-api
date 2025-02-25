@@ -29,7 +29,7 @@ func New(env *config.Configuration) (*Repository, error) {
 
 	repo := &Repository{
 		lemmaIndexes: lemmaIndexes,
-		epoch:        time.Date(2022, 10, 30, 0, 0, 0, 0, loc).UnixMilli(),
+		epoch:        time.Date(2022, time.October, 30, 0, 0, 0, 0, loc).UnixMilli(),
 	}
 
 	return repo, nil

@@ -28,7 +28,7 @@ import (
 func (h *Handler) Entry(ctx *gin.Context) {
 	entryNo, ok := h.getEntryNo(ctx)
 	if !ok {
-		ctx.JSON(http.StatusBadRequest, response.Error{Message: errUnexpectedEntryNo})
+		ctx.JSON(http.StatusBadRequest, response.ErrorOf(errUnexpectedEntryNo))
 		return
 	}
 
@@ -38,14 +38,14 @@ func (h *Handler) Entry(ctx *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, dict.ErrUnexpectedEmptyLemma) || errors.Is(err, dict.ErrUnexpectedEntryNumber):
-			ctx.JSON(http.StatusBadRequest, response.Error{Message: err})
+			ctx.JSON(http.StatusBadRequest, response.ErrorOf(err))
 		case errors.Is(err, dict.ErrLemmaNotFound) || errors.Is(err, dict.ErrEntryNotFound):
-			ctx.JSON(http.StatusNotFound, response.Error{Message: err})
+			ctx.JSON(http.StatusNotFound, response.ErrorOf(err))
 		case errors.Is(err, dict.ErrLemmaTooLong):
-			ctx.JSON(http.StatusRequestURITooLong, response.Error{Message: err})
+			ctx.JSON(http.StatusRequestURITooLong, response.ErrorOf(err))
 		default:
 			h.logger.ErrorContext(ctx, "Unexpected lemma retrieval failure", slog.String("error", err.Error()))
-			ctx.JSON(http.StatusInternalServerError, response.Error{Message: response.ErrInternalServerError})
+			ctx.JSON(http.StatusInternalServerError, response.InternalServerError)
 		}
 
 		return
