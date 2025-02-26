@@ -3,6 +3,7 @@ package entry
 import (
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/raf555/kbbi-api/internal/dto/response"
@@ -23,5 +24,5 @@ func (h *Handler) WOTD(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Redirect(http.StatusFound, wotd.Lemma)
+	ctx.Redirect(http.StatusFound, url.PathEscape(wotd.Lemma))
 }
