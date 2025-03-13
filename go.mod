@@ -2,7 +2,8 @@ module github.com/raf555/kbbi-api
 
 replace github.com/raf555/kbbi-api/pkg/kbbi => ./pkg/kbbi
 
-go 1.23
+go 1.24
+
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/wire v0.6.0
