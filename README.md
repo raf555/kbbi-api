@@ -73,7 +73,19 @@ The dictionary assets are encrypted (for now). You'll need the assets to run the
 You can rename the [.env.sample](.env.sample) file to be `.env` and run the server directly with this command.
 
 ```sh
-go run main.go wire_gen.go
+go run ./cmd/kbbi/main.go ./cmd/kbbi/wire_gen.go
+```
+
+To regenerate the swagger, run this command.
+
+```sh
+swag init -g ./cmd/kbbi/main.go
+```
+
+To regenerate the wire dependency, run this command.
+
+```sh
+wire ./cmd/kbbi
 ```
 
 Once success, you should be able to open http://localhost:8888 in your browser.
