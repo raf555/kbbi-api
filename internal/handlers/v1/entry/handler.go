@@ -40,7 +40,9 @@ func (h *Handler) RedirectToLowercase(ctx *gin.Context) {
 		//	i.e. /api/v1/entry/termometer maks/min Fahrenheit -> /api/v1/entry/termometer maks/termometer maks/min fahrenheit
 		//
 		// this is a hack to make sure it properly redirects to the correct lemma path.
-		ctx.Request.URL.Path = ctx.Request.URL.RawPath
+		if ctx.Request.URL.RawPath != "" {
+			ctx.Request.URL.Path = ctx.Request.URL.RawPath
+		}
 
 		ctx.Redirect(http.StatusMovedPermanently, url.PathEscape(lowered))
 		ctx.Abort()
