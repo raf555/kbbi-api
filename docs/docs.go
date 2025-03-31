@@ -23,6 +23,12 @@ const docTemplate = `{
                 ],
                 "summary": "Get Random Lemma",
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/kbbi.Lemma"
+                        }
+                    },
                     "302": {
                         "description": "Found",
                         "schema": {
@@ -46,6 +52,12 @@ const docTemplate = `{
                 ],
                 "summary": "Get Lemma of The Day",
                 "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/kbbi.Lemma"
+                        }
+                    },
                     "302": {
                         "description": "Found",
                         "schema": {
@@ -77,7 +89,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Lemma",
+                        "description": "Lemma. E.g. apel, aku (2), etc.",
                         "name": "entry",
                         "in": "path",
                         "required": true
@@ -85,7 +97,7 @@ const docTemplate = `{
                     {
                         "minimum": 1,
                         "type": "integer",
-                        "description": "Lemma's entry number (optional). Start from 1.",
+                        "description": "Lemma's entry number (optional). Start from 1. Will be skipped if there's entry number in the lemma.",
                         "name": "entryNo",
                         "in": "query"
                     }

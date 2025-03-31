@@ -13,6 +13,7 @@ import (
 // @Summary      Get Lemma of The Day
 // @Description  Redirect to the lemma of the day
 // @Tags         entry
+// @Success      200      {object}  kbbi.Lemma
 // @Success      302      {object}  kbbi.Lemma
 // @Failure      500      {object}  response.Error
 // @Router       /api/v1/entry/_wotd [get]

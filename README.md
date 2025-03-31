@@ -79,7 +79,7 @@ go run ./cmd/kbbi/main.go ./cmd/kbbi/wire_gen.go
 To regenerate the swagger, run this command.
 
 ```sh
-swag init -g ./cmd/kbbi/main.go
+swag init -dir ./cmd/kbbi --pdl 3
 ```
 
 To regenerate the wire dependency, run this command.
