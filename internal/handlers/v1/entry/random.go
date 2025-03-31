@@ -11,6 +11,7 @@ import (
 // @Summary      Get Random Lemma
 // @Description  Redirect to the random lemma
 // @Tags         entry
+// @Success      200      {object}  kbbi.Lemma
 // @Success      302      {object}  kbbi.Lemma
 // @Failure      500      {object}  response.Error
 // @Router       /api/v1/entry/_random [get]

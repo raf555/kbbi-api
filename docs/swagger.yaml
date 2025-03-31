@@ -162,6 +162,10 @@ paths:
     get:
       description: Redirect to the random lemma
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/kbbi.Lemma'
         "302":
           description: Found
           schema:
@@ -177,6 +181,10 @@ paths:
     get:
       description: Redirect to the lemma of the day
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/kbbi.Lemma'
         "302":
           description: Found
           schema:
@@ -194,12 +202,13 @@ paths:
       - application/json
       description: Show the information of provided lemma
       parameters:
-      - description: Lemma
+      - description: Lemma. E.g. apel, aku (2), etc.
         in: path
         name: entry
         required: true
         type: string
-      - description: Lemma's entry number (optional). Start from 1.
+      - description: Lemma's entry number (optional). Start from 1. Will be skipped
+          if there's entry number in the lemma.
         in: query
         minimum: 1
         name: entryNo

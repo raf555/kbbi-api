@@ -11,10 +11,16 @@ import (
 	"github.com/raf555/kbbi-api/internal/config"
 	assets_model "github.com/raf555/kbbi-api/internal/models/assets"
 	"github.com/raf555/kbbi-api/internal/repositories/wotd"
+	"github.com/raf555/kbbi-api/internal/util"
 	"github.com/raf555/kbbi-api/pkg/kbbi"
 )
 
 type (
+	lemmaIndex struct {
+		idx        int         // index in lemmas.
+		entryNoMap map[int]int // key is entry number, starts from 1. value is the actual index in the entries.
+	}
+
 	Dictionary struct {
 		wotd *wotd.Repository
 
@@ -22,7 +28,7 @@ type (
 
 		longestLemmaLength int
 
-		inverseIndex map[string]int
+		inverseIndex map[string]*lemmaIndex
 		lemmas       []kbbi.Lemma
 	}
 )
@@ -47,15 +53,28 @@ func New(env *config.Configuration, logger *slog.Logger, wotd *wotd.Repository) 
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 
 	longestLemmaLength := 0
-	inverseIdx := make(map[string]int, len(assetData.Lemmas))
+	inverseIdx := make(map[string]*lemmaIndex, len(assetData.Lemmas))
 
 	for i, lemma := range assetData.Lemmas {
-		inverseIdx[lemma.Lemma] = i
+		idx := &lemmaIndex{
+			idx:        i,
+			entryNoMap: map[int]int{},
+		}
+
+		// lookup and map entry index if any
+		for j, def := range lemma.Entries {
+			_, entryNo, ok := util.FindEntryNoFromLemma(def.Entry)
+			if !ok {
+				continue
+			}
+
+			idx.entryNoMap[entryNo] = j
+		}
+
+		inverseIdx[lemma.Lemma] = idx
 
 		lemmaLength := len(lemma.Lemma)
-		if lemmaLength > longestLemmaLength {
-			longestLemmaLength = lemmaLength
-		}
+		longestLemmaLength = max(longestLemmaLength, lemmaLength)
 	}
 
 	return &Dictionary{
@@ -84,12 +103,12 @@ func (d *Dictionary) Lemma(lemma string, entryNoPtr *int) (kbbi.Lemma, error) {
 		return kbbi.Lemma{}, ErrLemmaTooLong
 	}
 
-	idx, ok := d.inverseIndex[lemma]
+	index, ok := d.inverseIndex[lemma]
 	if !ok {
 		return kbbi.Lemma{}, ErrLemmaNotFound
 	}
 
-	lemmaData := d.lemmas[idx]
+	lemmaData := d.lemmas[index.idx]
 
 	if entryNoPtr != nil {
 		entryNo := *entryNoPtr
@@ -101,8 +120,15 @@ func (d *Dictionary) Lemma(lemma string, entryNoPtr *int) (kbbi.Lemma, error) {
 			return kbbi.Lemma{}, ErrEntryNotFound
 		}
 
-		entryIdx := entryNo - 1
-		lemmaData.Entries = lemmaData.Entries[entryIdx:entryNo]
+		// first, lookup for entry index in the map.
+		// if found, use that.
+		// otherwise, fallback to the index in the entries list.
+		entryIdx, ok := index.entryNoMap[entryNo]
+		if !ok {
+			entryIdx = entryNo - 1
+		}
+
+		lemmaData.Entries = lemmaData.Entries[entryIdx : entryIdx+1]
 	}
 
 	return lemmaData, nil
