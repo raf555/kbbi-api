@@ -13,7 +13,9 @@ import (
 func FindEntryNoFromLemma(lemma string) (string, int, bool) {
 	length := len(lemma)
 
-	if length < 5 || lemma[length-1] != ')' { // The lemma must contain at least `()`, a digit, a space, and a letter
+	// The lemma must contain at least `()`, a digit, a space, and a letter.
+	// It must also end with closing parenthesis.
+	if length < 5 || lemma[length-1] != ')' {
 		return "", 0, false
 	}
 
@@ -41,18 +43,22 @@ func FindEntryNoFromLemma(lemma string) (string, int, bool) {
 		}
 	}
 
-	whiteSpaceLoc := openingParenthesisIdx - 1 // before `(`
-	if lemma[whiteSpaceLoc] != ' ' {
+	if digitStartIdx < 0 || digitEndIdx < 0 {
 		return "", 0, false
 	}
+
+	whiteSpaceIdx := openingParenthesisIdx - 1 // before `(`
+	if whiteSpaceIdx < 0 || lemma[whiteSpaceIdx] != ' ' {
+		return "", 0, false
+	}
+
+	lemmaText := lemma[:whiteSpaceIdx]
 
 	digitStr := lemma[digitStartIdx:digitEndIdx]
 	entryNo, err := strconv.Atoi(digitStr)
 	if err != nil {
 		return "", 0, false
 	}
-
-	lemmaText := lemma[:whiteSpaceLoc]
 
 	return lemmaText, entryNo, true
 }
