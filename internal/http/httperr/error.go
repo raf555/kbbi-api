@@ -75,10 +75,9 @@ func HTTPStatusCode(err error) int {
 }
 
 func HTTPResponseMessage(err error) (string, bool) {
-	if msger, ok := err.(interface{ HTTPResponseMessage() (string, bool) }); ok {
-		if msg, ok := msger.HTTPResponseMessage(); ok {
-			return msg, true
-		}
+	if msger, ok := err.(interface{ HTTPResponseMessage() string }); ok {
+		msg := msger.HTTPResponseMessage()
+		return msg, msg != ""
 	}
 
 	return "", false

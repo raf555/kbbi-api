@@ -22,14 +22,12 @@ type EntryRequest struct {
 
 // transform will look for entry number in the lemma itself.
 // if it's present, it'll overwrite the lemma without the number and as well as modify the entryNo.
-func (e *EntryRequest) transform() error {
+func (e *EntryRequest) transform() {
 	// override if there's any entry number in the lemma
 	if newLemma, entryNo, ok := FindEntryNoFromLemma(e.Lemma); ok {
 		e.Lemma = newLemma
 		e.EntryNo = entryNo
 	}
-
-	return nil
 }
 
 type EntryResponse struct {

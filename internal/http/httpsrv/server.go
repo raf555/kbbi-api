@@ -51,7 +51,7 @@ func registerMiddlewares(router *gin.Engine, logger *slog.Logger) {
 	}))
 
 	router.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
-		logger.ErrorContext(ctx, "Panic occured", slog.Any("panic", err))
+		logger.ErrorContext(ctx, "Panic occurred", slog.Any("panic", err))
 
 		ctx.JSON(http.StatusInternalServerError, httpres.Error{Message: http.StatusText(http.StatusInternalServerError)})
 	}))

@@ -106,7 +106,7 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 		case errors.Is(err, ErrEntryNotFound):
 			return nil, httperr.Wrap(wrappedErr, http.StatusNotFound, "lemma's entry not found")
 		case errors.Is(err, ErrLemmaTooLong):
-			return nil, httperr.Wrap(wrappedErr, http.StatusNotFound, "lemma is too long")
+			return nil, httperr.Wrap(wrappedErr, http.StatusRequestURITooLong, "lemma is too long")
 		default:
 			return nil, wrappedErr
 		}

@@ -15,7 +15,7 @@ var (
 )
 
 func init() {
-	en_translations.RegisterDefaultTranslations(validate, validateTranslator)
+	_ = en_translations.RegisterDefaultTranslations(validate, validateTranslator)
 }
 
 func getValidatorTranslator() ut.Translator {

@@ -21,7 +21,7 @@ func Load(file string) error {
 		return fmt.Errorf("os.Stat: %w", err)
 	}
 
-	err = godotenv.Load()
+	err = godotenv.Load(file)
 	if err != nil {
 		return fmt.Errorf("godotenv.Load: %w", err)
 	}

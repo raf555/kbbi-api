@@ -43,7 +43,7 @@ var ServerInvoker = fx.Module(
 			err := s.ServeHTTP(hs)
 			if err != nil {
 				log.ErrorContext(ctx, "http server exited unexpectedly", logger.Error(err))
-				shutdowner.Shutdown(fx.ExitCode(1))
+				_ = shutdowner.Shutdown(fx.ExitCode(1))
 			}
 		}()
 

@@ -16,11 +16,11 @@ type Handler[req, res any] = func(context.Context, *req) (*res, error)
 
 // MakeHandler wraps http controller with request binder and sends response accordingly.
 //
-// handler can return a http error from [errorx] package to specify status code for the response.
+// handler can return a http error from [httperr] package to specify status code for the response.
 //
 // error handling for requestBinder is the same as handler.
 //
-// Both implementation of handler is encouraged to use [errorx.HTTPWrapf] to wrap the error to make the best result.
+// Both implementation of handler is encouraged to use errors from package [httperr] to wrap the error to make the best result.
 // Otherwise, this handler will always return 5xx error.
 func MakeHandler[reqT, resT any](
 	handler Handler[reqT, resT],
