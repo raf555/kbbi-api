@@ -25,24 +25,24 @@ func Read(filename, dir string, key, nonce []byte) *reader {
 func (r *reader) To(target any) error {
 	ciphertext, err := os.ReadFile(path.Join(r.dir, r.filename))
 	if err != nil {
-		return fmt.Errorf("error reading file: %w", err)
+		return fmt.Errorf("os.ReadFile: %w", err)
 	}
 
 	plaintext, err := crypto.Decrypt(r.key, r.nonce, ciphertext)
 	if err != nil {
-		return fmt.Errorf("error decrypting file: %w", err)
+		return fmt.Errorf("crypto.Decrypt: %w", err)
 	}
 
 	reader := bytes.NewReader(plaintext)
 	gz, err := gzip.NewReader(reader)
 	if err != nil {
-		return fmt.Errorf("error initializing gzip reader: %w", err)
+		return fmt.Errorf("gzip.NewReader: %w", err)
 	}
 
 	if err = json.NewDecoder(gz).Decode(target); err != nil {
-		return fmt.Errorf("error decoding the asset: %w", err)
+		return fmt.Errorf("json.NewDecoder.Decode: %w", err)
 	}
 
-	gz.Close()
+	_ = gz.Close()
 	return nil
 }
