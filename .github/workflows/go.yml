@@ -1,5 +1,3 @@
-# This workflow builds, tests, and lints a Go project using golangci-lint
-
 name: Go
 
 on:

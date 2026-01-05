@@ -24,7 +24,7 @@ func getValidatorTranslator() ut.Translator {
 
 	validateTranslator, ok := uni.GetTranslator("en")
 	if !ok {
-		panic(errors.New("validator translator not found"))
+		panic(errors.New("httphandler: validator translator not found"))
 	}
 
 	return validateTranslator

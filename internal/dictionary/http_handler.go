@@ -68,7 +68,7 @@ func (*HTTPHandler) redirectToLowercase(ctx *gin.Context) {
 
 		path := url.PathEscape(lowered)
 		if query := ctx.Request.URL.RawQuery; query != "" {
-			path += fmt.Sprintf("?%s", ctx.Request.URL.RawQuery)
+			path += fmt.Sprintf("?%s", query)
 		}
 
 		ctx.Redirect(http.StatusMovedPermanently, path)

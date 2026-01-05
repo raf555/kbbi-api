@@ -16,12 +16,13 @@ type Stats struct {
 }
 
 type EntryRequest struct {
-	Lemma   string `uri:"entry" validate:"required"`
-	EntryNo int    `form:"entryNo" validate:"gte=0"`
+	Lemma string `uri:"entry" validate:"required"`
+	// EntryNo is optional; value 0 means "no specific entry number requested".
+	EntryNo int `form:"entryNo" validate:"gte=0"`
 }
 
-// transform will look for entry number in the lemma itself.
-// if it's present, it'll overwrite the lemma without the number and as well as modify the entryNo.
+// transform mutates the EntryRequest in place by looking for an entry number in the lemma string.
+// If an entry number is present, it updates Lemma to exclude the number and sets EntryNo accordingly.
 func (e *EntryRequest) transform() {
 	// override if there's any entry number in the lemma
 	if newLemma, entryNo, ok := FindEntryNoFromLemma(e.Lemma); ok {

@@ -29,7 +29,7 @@ func Run(ctx context.Context, options ...fx.Option) error {
 	}
 
 	if err := stopContainer(ctx, app); err != nil {
-		return fmt.Errorf("stop application: %w", err)
+		logger.FromContext(ctx).WarnContext(ctx, "failed to stop application", logger.Error(err))
 	}
 
 	// must be unexpected exit
@@ -92,7 +92,7 @@ func stopContainer(ctx context.Context, app *fx.App) error {
 	defer done()
 
 	if err := app.Stop(ctx); err != nil {
-		return err
+		return fmt.Errorf("stopping app: %w", err)
 	}
 
 	return nil

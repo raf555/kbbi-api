@@ -39,9 +39,8 @@ func Wrap(err error, code int, message string) error {
 	}
 }
 
-// Wrapf wraps err with httpStatusCode and a cause from message and args.
-// message and args will be an error that wraps err and will be shown to the response.
-// err is kept internally.
+// Wrapf wraps err with an HTTP status code and formats the message with args.
+// The formatted message will be shown in the HTTP response while err is kept internally for logging
 func Wrapf(err error, code int, message string, args ...any) error {
 	return &httpError{
 		inner: err,

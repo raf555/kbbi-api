@@ -2,6 +2,7 @@ package httpfx
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -26,21 +27,25 @@ var ServerInvoker = fx.Module(
 		fx.Private,
 	),
 	fx.Decorate(func(ctx context.Context, s *http.Server) *http.Server {
-		s.BaseContext = func(_ net.Listener) context.Context {
+		temp := s.BaseContext
+		s.BaseContext = func(nl net.Listener) context.Context {
+			if temp != nil {
+				ctx = temp(nl)
+			}
+			// using without context because the global context will be canceled upon shutdown.
+			// we want the server to shutdown gracefully without canceling all serving requests immediately.
 			return context.WithoutCancel(ctx)
 		}
 		return s
 	}),
-	fx.Provide(
-		func(c httpsrv.Config) (*server.Server, error) {
-			srv, err := server.New(c.Port)
-			return srv, err
-		},
-		fx.Private,
-	),
-	fx.Invoke(func(ctx context.Context, conf httpsrv.Config, log *slog.Logger, s *server.Server, hs *http.Server, shutdowner fx.Shutdowner) {
+	fx.Invoke(func(ctx context.Context, conf httpsrv.Config, log *slog.Logger, hs *http.Server, shutdowner fx.Shutdowner) error {
+		srv, err := server.New(conf.Port)
+		if err != nil {
+			return fmt.Errorf("server.New: %w", err)
+		}
+
 		go func() {
-			err := s.ServeHTTP(hs)
+			err := srv.ServeHTTP(hs)
 			if err != nil {
 				log.ErrorContext(ctx, "http server exited unexpectedly", logger.Error(err))
 				_ = shutdowner.Shutdown(fx.ExitCode(1))
@@ -48,20 +53,7 @@ var ServerInvoker = fx.Module(
 		}()
 
 		log.InfoContext(ctx, "listening http...", slog.Int("port", conf.Port))
+
+		return nil
 	}),
 )
-
-func HandlerProvider(constructor any, opts ...fx.Annotation) fx.Option {
-	opt := []fx.Annotation{
-		fx.As(new(httpsrv.RouterRegistrar)),
-		fx.ResultTags(`group:"http.controllers"`),
-	}
-	opt = append(opt, opts...)
-
-	return fx.Provide(
-		fx.Annotate(
-			constructor,
-			opt...,
-		),
-	)
-}
