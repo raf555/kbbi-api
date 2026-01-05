@@ -32,7 +32,7 @@ var ServerInvoker = fx.Module(
 			if temp != nil {
 				ctx = temp(nl)
 			}
-			// using without context because the global context will be canceled upon shutdown.
+			// using context.WithoutCancel because the global context will be canceled upon shutdown.
 			// we want the server to shutdown gracefully without canceling all serving requests immediately.
 			return context.WithoutCancel(ctx)
 		}
