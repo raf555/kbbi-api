@@ -54,9 +54,9 @@ Probably the most complete public KBBI API you will ever find.
 
 ## Data Source
 
-Latest edition: `Oktober 2023`
+Latest edition: `Oktober 2025`
 
-The dictionary is mirrored from [Official KBBI Application][] `v1.0.0` with some hand-edited data and customly decoded for author's requirement.
+The dictionary is mirrored from [Official KBBI Application][] `v6.0.0` with some hand-edited data and customly decoded for author's requirement.
 
 The dictionary used by the server will be updated as soon as new version of the application is released.
 
@@ -73,19 +73,13 @@ The dictionary assets are encrypted (for now). You'll need the assets to run the
 You can rename the [.env.sample](.env.sample) file to be `.env` and run the server directly with this command.
 
 ```sh
-go run ./cmd/kbbi/main.go ./cmd/kbbi/wire_gen.go
+go run ./cmd/kbbi
 ```
 
 To regenerate the swagger, run this command.
 
 ```sh
-swag init -dir ./cmd/kbbi --pdl 3
-```
-
-To regenerate the wire dependency, run this command.
-
-```sh
-wire ./cmd/kbbi
+go generate ./...
 ```
 
 Once success, you should be able to open http://localhost:8888 in your browser.
