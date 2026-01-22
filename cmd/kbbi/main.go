@@ -19,6 +19,6 @@ func main() {
 	)
 
 	if err != nil {
-		panic(err)
+		panic("main: " + err.Error())
 	}
 }
