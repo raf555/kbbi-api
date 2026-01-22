@@ -1,14 +1,14 @@
-package assets
+package dictionary
 
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path"
-
-	"github.com/raf555/kbbi-api/internal/crypto"
 )
 
 type (
@@ -18,7 +18,7 @@ type (
 	}
 )
 
-func Read(filename, dir string, key, nonce []byte) *reader {
+func ReadAsset(filename, dir string, key, nonce []byte) *reader {
 	return &reader{filename, dir, key, nonce}
 }
 
@@ -28,9 +28,9 @@ func (r *reader) To(target any) error {
 		return fmt.Errorf("os.ReadFile: %w", err)
 	}
 
-	plaintext, err := crypto.Decrypt(r.key, r.nonce, ciphertext)
+	plaintext, err := r.decrypt(r.key, r.nonce, ciphertext)
 	if err != nil {
-		return fmt.Errorf("crypto.Decrypt: %w", err)
+		return fmt.Errorf("r.decrypt: %w", err)
 	}
 
 	reader := bytes.NewReader(plaintext)
@@ -45,4 +45,23 @@ func (r *reader) To(target any) error {
 
 	_ = gz.Close()
 	return nil
+}
+
+func (r *reader) decrypt(key, nonce, ciphertext []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, fmt.Errorf("aes.NewCipher: %w", err)
+	}
+
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("cipher.NewGCM: %w", err)
+	}
+
+	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return nil, fmt.Errorf("aesGCM.Open: %w", err)
+	}
+
+	return plaintext, nil
 }

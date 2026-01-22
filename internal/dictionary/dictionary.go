@@ -6,7 +6,6 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/raf555/kbbi-api/internal/assets"
 	"github.com/raf555/kbbi-api/pkg/kbbi"
 )
 
@@ -29,8 +28,8 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	start := time.Now()
 	logger.Info("Started reading dictionary asset")
 	var assetData AssetData
-	if err := assets.Read("dict.db", cfg.AssetsDirectory, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV).To(&assetData); err != nil {
-		return nil, fmt.Errorf("assets.Read: %w", err)
+	if err := ReadAsset("dict.db", cfg.AssetsDirectory, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV).To(&assetData); err != nil {
+		return nil, fmt.Errorf("ReadAsset: %w", err)
 	}
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 
