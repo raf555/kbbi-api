@@ -29,7 +29,7 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	logger.Info("Started reading dictionary asset")
 	var assetData AssetData
 	if err := ReadAsset("dict.db", cfg.AssetsDirectory, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV).To(&assetData); err != nil {
-		return nil, fmt.Errorf("assets.Read: %w", err)
+		return nil, fmt.Errorf("ReadAsset: %w", err)
 	}
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 

@@ -14,7 +14,7 @@ type WOTD struct {
 func NewWOTD(env Configuration) (*WOTD, error) {
 	var lemmaIndexes []int
 	if err := ReadAsset("wotd.db", env.AssetsDirectory, env.AssetsEncryptionKey, env.AssetsEncryptionIV).To(&lemmaIndexes); err != nil {
-		return nil, fmt.Errorf("assets.Read: %w", err)
+		return nil, fmt.Errorf("ReadAsset: %w", err)
 	}
 
 	loc, err := time.LoadLocation("Asia/Jakarta")
