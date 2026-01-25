@@ -81,7 +81,7 @@ func TestFindEntryNoFromLemma(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		t.Run(tc.in, func(t *testing.T) {
+		t.Run(fmt.Sprintf("input=%s", tc.in), func(t *testing.T) {
 			lemma, entry, ok := dictionary.FindEntryNoFromLemma(tc.in)
 
 			if !tc.expectedOk {
@@ -256,7 +256,7 @@ func TestNormalize(t *testing.T) {
 	}
 
 	for _, tc := range tcs {
-		t.Run(fmt.Sprintf("%s (removePunctuation=%t)", tc.in, tc.removePunctuations), func(t *testing.T) {
+		t.Run(fmt.Sprintf("input=%s (removePunctuation=%t)", tc.in, tc.removePunctuations), func(t *testing.T) {
 			result := dictionary.Normalize(tc.in, tc.removePunctuations)
 			assert.Equal(t, tc.expected, result)
 		})
