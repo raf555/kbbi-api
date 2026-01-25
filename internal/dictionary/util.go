@@ -2,7 +2,10 @@ package dictionary
 
 import (
 	"strconv"
+	"strings"
 	"unicode"
+
+	"golang.org/x/text/unicode/norm"
 )
 
 // FindEntryNoFromLemma will return the cleaned lemma from the entry number
@@ -61,4 +64,38 @@ func FindEntryNoFromLemma(lemma string) (string, int, bool) {
 	}
 
 	return lemmaText, entryNo, true
+}
+
+// Normalize is an optimized string normalization function used by the KBBI app.
+//
+// What it does:
+//  1. Normalize str in NFKD form
+//  2. Remove any diacritics in str
+//  3. Remove any punctuations in str (if true)
+func Normalize(str string, removePunctuations bool) string {
+	if str == "" {
+		return ""
+	}
+
+	str = norm.NFKD.String(str)
+
+	var b strings.Builder
+	b.Grow(len(str))
+
+	for _, r := range str {
+		if unicode.Is(unicode.Mn, r) {
+			continue
+		}
+
+		if removePunctuations {
+			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == ' ' {
+				b.WriteRune(r)
+			}
+			continue
+		}
+
+		b.WriteRune(r)
+	}
+
+	return b.String()
 }

@@ -16,11 +16,12 @@ type (
 	}
 
 	Dictionary struct {
-		wotd               WOTDRepo
-		stats              Stats
-		longestLemmaLength int
-		inverseIndex       map[string]*lemmaIndex
-		lemmas             []kbbi.Lemma
+		wotd                   WOTDRepo
+		stats                  Stats
+		longestLemmaLength     int
+		inverseIndex           map[string]*lemmaIndex
+		inverseNormalizedIndex map[string]*lemmaIndex
+		lemmas                 []kbbi.Lemma
 	}
 )
 
@@ -35,6 +36,7 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 
 	longestLemmaLength := 0
 	inverseIdx := make(map[string]*lemmaIndex, len(assetData.Lemmas))
+	inverseNormalizedIndex := make(map[string]*lemmaIndex)
 
 	for i, lemma := range assetData.Lemmas {
 		idx := &lemmaIndex{
@@ -53,17 +55,28 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 		}
 
 		inverseIdx[lemma.Lemma] = idx
+		if normalized := Normalize(lemma.Lemma, false); normalized != lemma.Lemma { // lemma has normalized form
+			// p.s. not removing punctuation here to make exact match.
+			// Don't want `s.t` to have the result of `st.` or other similar case since it's probably wrong.
+			// So for now only care for removing diacritics.
+			//
+			// If the inverseNormalizedIndex of the normalized lemma is already occupied, ignore (only use the first one).
+			if _, ok := inverseNormalizedIndex[normalized]; !ok {
+				inverseNormalizedIndex[normalized] = idx
+			}
+		}
 
 		lemmaLength := len(lemma.Lemma)
 		longestLemmaLength = max(longestLemmaLength, lemmaLength)
 	}
 
 	return &Dictionary{
-		wotd:               wotd,
-		stats:              assetData.Stats,
-		longestLemmaLength: longestLemmaLength,
-		inverseIndex:       inverseIdx,
-		lemmas:             assetData.Lemmas,
+		wotd:                   wotd,
+		stats:                  assetData.Stats,
+		longestLemmaLength:     longestLemmaLength,
+		inverseIndex:           inverseIdx,
+		inverseNormalizedIndex: inverseNormalizedIndex,
+		lemmas:                 assetData.Lemmas,
 	}, nil
 }
 
@@ -84,8 +97,8 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (kbbi.Lemma, error) {
 		return kbbi.Lemma{}, ErrLemmaTooLong
 	}
 
-	index, ok := d.inverseIndex[lemma]
-	if !ok {
+	index := d.lookupInverseIndex(lemma)
+	if index == nil {
 		return kbbi.Lemma{}, ErrLemmaNotFound
 	}
 
@@ -112,6 +125,24 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (kbbi.Lemma, error) {
 	}
 
 	return lemmaData, nil
+}
+
+func (d *Dictionary) lookupInverseIndex(lemma string) *lemmaIndex {
+	// lookup on exact index first
+	index, ok := d.inverseIndex[lemma]
+	if ok {
+		return index
+	}
+
+	// if not found, normalize the lemma, and check on the normalized index
+	normalized := Normalize(lemma, false)
+	index, ok = d.inverseNormalizedIndex[normalized]
+	if ok {
+		return index
+	}
+
+	// otherwise not found
+	return nil
 }
 
 func (d *Dictionary) RandomLemma() kbbi.Lemma {
