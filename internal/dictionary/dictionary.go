@@ -4,26 +4,33 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand/v2"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/raf555/kbbi-api/pkg/kbbi"
+	"github.com/samber/lo"
 )
 
-type (
-	lemmaIndex struct {
-		idx        int         // index in lemmas.
-		entryNoMap map[int]int // key is entry number, starts from 1. value is the actual index in the entries.
-	}
+type Dictionary struct {
+	wotd                   WOTDRepo
+	stats                  Stats
+	longestLemmaLength     int
+	inverseIndex           map[string]*lemmaIndex
+	inverseNormalizedIndex map[string]*lemmaIndex
+	lemmas                 []wrappedLemma
+}
 
-	Dictionary struct {
-		wotd                   WOTDRepo
-		stats                  Stats
-		longestLemmaLength     int
-		inverseIndex           map[string]*lemmaIndex
-		inverseNormalizedIndex map[string]*lemmaIndex
-		lemmas                 []kbbi.Lemma
-	}
-)
+type lemmaIndex struct {
+	idx        int         // index in lemmas.
+	entryNoMap map[int]int // key is entry number, starts from 1. value is the actual index in the entries.
+}
+
+type wrappedLemma struct {
+	kbbi.Lemma
+
+	NormalizedForm string
+}
 
 func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dictionary, error) {
 	start := time.Now()
@@ -37,6 +44,7 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	longestLemmaLength := 0
 	inverseIdx := make(map[string]*lemmaIndex, len(assetData.Lemmas))
 	inverseNormalizedIndex := make(map[string]*lemmaIndex)
+	lemmas := make([]wrappedLemma, 0, len(assetData.Lemmas))
 
 	for i, lemma := range assetData.Lemmas {
 		idx := &lemmaIndex{
@@ -68,6 +76,10 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 
 		lemmaLength := len(lemma.Lemma)
 		longestLemmaLength = max(longestLemmaLength, lemmaLength)
+		lemmas = append(lemmas, wrappedLemma{
+			Lemma:          lemma,
+			NormalizedForm: Normalize(lemma.Lemma, true),
+		})
 	}
 
 	return &Dictionary{
@@ -76,7 +88,7 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 		longestLemmaLength:     longestLemmaLength,
 		inverseIndex:           inverseIdx,
 		inverseNormalizedIndex: inverseNormalizedIndex,
-		lemmas:                 assetData.Lemmas,
+		lemmas:                 lemmas,
 	}, nil
 }
 
@@ -124,7 +136,7 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (kbbi.Lemma, error) {
 		lemmaData.Entries = lemmaData.Entries[entryIdx : entryIdx+1]
 	}
 
-	return lemmaData, nil
+	return lemmaData.Lemma, nil
 }
 
 func (d *Dictionary) lookupInverseIndex(lemma string) *lemmaIndex {
@@ -147,7 +159,7 @@ func (d *Dictionary) lookupInverseIndex(lemma string) *lemmaIndex {
 
 func (d *Dictionary) RandomLemma() kbbi.Lemma {
 	randomIdx := rand.IntN(len(d.lemmas))
-	return d.lemmas[randomIdx]
+	return d.lemmas[randomIdx].Lemma
 }
 
 func (d *Dictionary) LemmaOfTheDay() (kbbi.Lemma, error) {
@@ -158,5 +170,31 @@ func (d *Dictionary) LemmaOfTheDay() (kbbi.Lemma, error) {
 		return kbbi.Lemma{}, fmt.Errorf("%w: %d", ErrUnexpectedWotdIndex, idx)
 	}
 
-	return d.lemmas[idx], nil
+	return d.lemmas[idx].Lemma, nil
+}
+
+// Search provides a list of lemmas based on prefix, number of result depends on limit.
+// Search behaves similarly with search feature on the KBBI application.
+//
+// If prefix is empty, Search returns top limit lemmas.
+func (d *Dictionary) Search(prefix string, limit uint) []kbbi.Lemma {
+	if prefix == "" {
+		return lo.Map(d.lemmas[:min(int(limit), len(d.lemmas))], func(lemma wrappedLemma, _ int) kbbi.Lemma { return lemma.Lemma })
+	}
+
+	prefix = strings.ToLower(Normalize(prefix, true))
+
+	leftIdx, _ := slices.BinarySearchFunc(d.lemmas, prefix, func(curr wrappedLemma, search string) int {
+		return strings.Compare(curr.NormalizedForm, search)
+	})
+
+	rightIdx, _ := slices.BinarySearchFunc(d.lemmas, prefix+"\uffff", func(curr wrappedLemma, search string) int {
+		return strings.Compare(curr.NormalizedForm, search)
+	})
+
+	if leftIdx >= len(d.lemmas) || rightIdx < leftIdx || !strings.HasPrefix(d.lemmas[leftIdx].NormalizedForm, prefix) {
+		return nil
+	}
+
+	return lo.Map(d.lemmas[leftIdx:rightIdx][:min(limit, uint(rightIdx-leftIdx))], func(lemma wrappedLemma, _ int) kbbi.Lemma { return lemma.Lemma })
 }
