@@ -34,3 +34,12 @@ func (e *EntryRequest) transform() {
 type EntryResponse struct {
 	kbbi.Lemma
 }
+
+type SearchRequest struct {
+	Lemma string `form:"entry"`
+	Limit uint   `form:"limit" validate:"max=100"`
+}
+
+type SearchResponse struct {
+	Entries []string `json:"entries"`
+}

@@ -11,4 +11,5 @@ type DictionaryRepo interface {
 	Lemma(lemma string, entryNo int) (kbbi.Lemma, error)
 	RandomLemma() kbbi.Lemma
 	LemmaOfTheDay() (kbbi.Lemma, error)
+	Search(prefix string, limit uint) []kbbi.Lemma
 }

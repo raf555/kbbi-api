@@ -11,6 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/raf555/kbbi-api/internal/http/httperr"
 	"github.com/raf555/kbbi-api/internal/http/httphandler"
+	"github.com/raf555/kbbi-api/pkg/kbbi"
+	"github.com/samber/lo"
 )
 
 type HTTPHandler struct {
@@ -32,18 +34,26 @@ func (h *HTTPHandler) MustRegisterRoutes(g *gin.Engine) {
 		),
 	)
 
+	entryGroupV1.GET("/_wotd",
+		httphandler.MakeSimpleRedirectHandler(
+			h.WOTD,
+		),
+	)
+
+	entryGroupV1.GET("/_search",
+		httphandler.MakeHandler(
+			h.Search,
+			httphandler.DefaultRequestBinder,
+			httphandler.WithPureJSONSerializer(),
+		),
+	)
+
 	entryGroupV1.GET("/:entry",
 		h.redirectToLowercase,
 		httphandler.MakeHandler(
 			h.Entry,
 			httphandler.DefaultRequestBinder,
 			httphandler.WithPureJSONSerializer(),
-		),
-	)
-
-	entryGroupV1.GET("/_wotd",
-		httphandler.MakeSimpleRedirectHandler(
-			h.WOTD,
 		),
 	)
 }
@@ -149,5 +159,23 @@ func (h *HTTPHandler) WOTD(ctx context.Context) (httphandler.RedirectResult, err
 	return httphandler.RedirectResult{
 		Code: http.StatusFound,
 		Path: url.PathEscape(wotd.Lemma),
+	}, nil
+}
+
+// Entry godoc
+// @Summary      Search Lemmas
+// @Description  Suggest a list of lemmas based on keyword. Search is done similarly with the application.
+// @Tags         entry
+// @Produce      json
+// @Param        entry	  query     string	  	false 	"The query to be used for search."
+// @Param        limit	  query     uint	  	true	"Maximum number of lemmas to be returned." maximum(100)
+// @Success      200   	  {object}  SearchResponse
+// @Failure      500      {object}  httpres.Error
+// @Router       /api/v1/entry/_search [get]
+func (h *HTTPHandler) Search(ctx context.Context, req *SearchRequest) (*SearchResponse, error) {
+	result := h.dict.Search(req.Lemma, req.Limit)
+
+	return &SearchResponse{
+		Entries: lo.Map(result, func(lemma kbbi.Lemma, _ int) string { return lemma.Lemma }),
 	}, nil
 }
