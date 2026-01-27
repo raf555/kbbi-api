@@ -33,6 +33,48 @@
                 }
             }
         },
+        "/api/v1/entry/_search": {
+            "get": {
+                "description": "Suggest a list of lemmas based on keyword. Search is done similarly with the application.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "entry"
+                ],
+                "summary": "Search Lemmas",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "The query to be used for search.",
+                        "name": "entry",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "type": "integer",
+                        "description": "Maximum number of lemmas to be returned.",
+                        "name": "limit",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dictionary.SearchResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpres.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/entry/_wotd": {
             "get": {
                 "description": "Redirect to the lemma of the day",
@@ -127,6 +169,17 @@
         }
     },
     "definitions": {
+        "dictionary.SearchResponse": {
+            "type": "object",
+            "properties": {
+                "entries": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "httpres.Error": {
             "type": "object",
             "properties": {
