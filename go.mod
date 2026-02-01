@@ -11,6 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/joho/godotenv v1.5.1
 	github.com/raf555/kbbi-api/pkg/kbbi v0.0.0
+	github.com/samber/lo v1.49.1
 	github.com/samber/slog-formatter v1.2.0
 	github.com/samber/slog-gin v1.14.1
 	github.com/sethvargo/go-envconfig v1.1.0
@@ -51,7 +52,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
-	github.com/samber/lo v1.49.1 // indirect
 	github.com/samber/slog-multi v1.3.3 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

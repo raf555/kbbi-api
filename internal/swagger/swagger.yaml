@@ -1,4 +1,11 @@
 definitions:
+  dictionary.SearchResponse:
+    properties:
+      entries:
+        items:
+          type: string
+        type: array
+    type: object
   httpres.Error:
     properties:
       message:
@@ -175,6 +182,35 @@ paths:
           schema:
             $ref: '#/definitions/httpres.Error'
       summary: Get Random Lemma
+      tags:
+      - entry
+  /api/v1/entry/_search:
+    get:
+      description: Suggest a list of lemmas based on keyword. Search is done similarly
+        with the application.
+      parameters:
+      - description: The query to be used for search.
+        in: query
+        name: entry
+        type: string
+      - description: Maximum number of lemmas to be returned.
+        in: query
+        maximum: 100
+        name: limit
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dictionary.SearchResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpres.Error'
+      summary: Search Lemmas
       tags:
       - entry
   /api/v1/entry/_wotd:
