@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/raf555/kbbi-api/pkg/kbbi"
+	"github.com/samber/lo"
 )
 
 type (
 	lemmaIndex struct {
-		idx        int         // index in lemmas.
-		entryNoMap map[int]int // key is entry number, starts from 1. value is the actual index in the entries.
+		idx        int           // index in lemmas.
+		entryNoMap map[int][]int // key is entry number, starts from 1. value is the actual index in the entries.
 	}
 
 	Dictionary struct {
@@ -41,7 +42,7 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	for i, lemma := range assetData.Lemmas {
 		idx := &lemmaIndex{
 			idx:        i,
-			entryNoMap: map[int]int{},
+			entryNoMap: map[int][]int{},
 		}
 
 		// lookup and map entry index if any
@@ -51,7 +52,9 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 				continue
 			}
 
-			idx.entryNoMap[entryNo] = j
+			// there can be multiple entries with same number. E.g. ketak (4)
+			// could be misinput from KBBI but for now making the behavior the same as the website.
+			idx.entryNoMap[entryNo] = append(idx.entryNoMap[entryNo], j)
 		}
 
 		inverseIdx[lemma.Lemma] = idx
@@ -113,15 +116,14 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (kbbi.Lemma, error) {
 			return kbbi.Lemma{}, ErrEntryNotFound
 		}
 
-		// first, lookup for entry index in the map.
-		// if found, use that.
-		// otherwise, fallback to the index in the entries list.
-		entryIdx, ok := index.entryNoMap[entryNo]
+		entryIndexes, ok := index.entryNoMap[entryNo]
 		if !ok {
-			entryIdx = entryNo - 1
+			return kbbi.Lemma{}, ErrEntryNotFound
 		}
 
-		lemmaData.Entries = lemmaData.Entries[entryIdx : entryIdx+1]
+		lemmaData.Entries = lo.Map(entryIndexes, func(idx int, _ int) kbbi.Entry {
+			return lemmaData.Entries[idx]
+		})
 	}
 
 	return lemmaData, nil
