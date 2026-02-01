@@ -176,6 +176,6 @@ func (h *HTTPHandler) Search(ctx context.Context, req *SearchRequest) (*SearchRe
 	result := h.dict.Search(req.Lemma, req.Limit)
 
 	return &SearchResponse{
-		Entries: lo.Map(result, func(lemma kbbi.Lemma, _ int) string { return lemma.Lemma }),
+		Lemmas: lo.Map(result, func(lemma kbbi.Lemma, _ int) string { return lemma.Lemma }),
 	}, nil
 }

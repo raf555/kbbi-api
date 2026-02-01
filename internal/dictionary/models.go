@@ -41,5 +41,5 @@ type SearchRequest struct {
 }
 
 type SearchResponse struct {
-	Entries []string `json:"entries"`
+	Lemmas []string `json:"lemmas"`
 }

@@ -183,7 +183,7 @@ const docTemplate = `{
         "dictionary.SearchResponse": {
             "type": "object",
             "properties": {
-                "entries": {
+                "lemmas": {
                     "type": "array",
                     "items": {
                         "type": "string"

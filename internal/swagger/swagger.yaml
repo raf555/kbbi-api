@@ -1,7 +1,7 @@
 definitions:
   dictionary.SearchResponse:
     properties:
-      entries:
+      lemmas:
         items:
           type: string
         type: array
