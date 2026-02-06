@@ -11,7 +11,7 @@ import (
 )
 
 type infisicalConfig struct {
-	SiteUrl      string `env:"INFISICAL_SITE_URL" validate:"omitzero,https_url"`
+	SiteUrl      string `env:"INFISICAL_SITE_URL"`
 	ClientID     string `env:"INFISICAL_CLIENT_ID" validate:"required_with=SiteUrl"`
 	ClientSecret string `env:"INFISICAL_CLIENT_SECRET" validate:"required_with=SiteUrl"`
 	ProjectSlug  string `env:"INFISICAL_PROJECT_SLUG" validate:"required_with=SiteUrl"`
