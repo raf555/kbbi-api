@@ -7,16 +7,16 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/raf555/kbbi-api/internal/config"
 	"github.com/raf555/kbbi-api/internal/http/httpsrv"
 	"github.com/raf555/kbbi-api/internal/logger"
 	"github.com/raf555/kbbi-api/internal/server"
+	"github.com/raf555/salome/config/v1"
 	"go.uber.org/fx"
 )
 
 var ServerInvoker = fx.Module(
 	"http_server",
-	fx.Provide(config.EnvConfigProvider[httpsrv.Config], fx.Private),
+	fx.Provide(config.LoadConfigTo[httpsrv.Config], fx.Private),
 	fx.Provide(
 		fx.Annotate(
 			httpsrv.NewServer,
