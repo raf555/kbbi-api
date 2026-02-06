@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"time"
 
-	_ "github.com/raf555/kbbi-api/internal/config/load" // load dotenv
 	"github.com/raf555/kbbi-api/internal/logger"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
