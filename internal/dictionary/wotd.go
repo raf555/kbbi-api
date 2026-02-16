@@ -2,6 +2,7 @@ package dictionary
 
 import (
 	"fmt"
+	"log/slog"
 	"math/rand/v2"
 	"time"
 )
@@ -11,9 +12,18 @@ type WOTD struct {
 	epoch        int64
 }
 
-func NewWOTD(env Configuration) (*WOTD, error) {
+func NewWOTD(env Configuration, logger *slog.Logger) (*WOTD, error) {
 	var lemmaIndexes []int
-	if err := ReadAsset("wotd.db", env.AssetsDirectory, env.AssetsEncryptionKey, env.AssetsEncryptionIV).To(&lemmaIndexes); err != nil {
+
+	var reader *reader
+	if url := env.WOTD.DownloadURL; url != "" {
+		logger.Info("reading WOTD asset from URL", slog.String("url", url))
+		reader = ReadAssetFromURL(url, env.AssetsEncryptionKey, env.AssetsEncryptionIV)
+	} else {
+		reader = ReadAsset("wotd.db", env.AssetsDirectory, env.AssetsEncryptionKey, env.AssetsEncryptionIV)
+	}
+
+	if err := reader.To(&lemmaIndexes); err != nil {
 		return nil, fmt.Errorf("ReadAsset: %w", err)
 	}
 

@@ -35,10 +35,21 @@ type wrappedLemma struct {
 func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dictionary, error) {
 	start := time.Now()
 	logger.Info("Started reading dictionary asset")
+
 	var assetData AssetData
-	if err := ReadAsset("dict.db", cfg.AssetsDirectory, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV).To(&assetData); err != nil {
+
+	var reader *reader
+	if url := cfg.Dictionary.DownloadURL; url != "" {
+		logger.Info("reading dictionary asset from URL", slog.String("url", url))
+		reader = ReadAssetFromURL(url, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV)
+	} else {
+		reader = ReadAsset("dict.db", cfg.AssetsDirectory, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV)
+	}
+
+	if err := reader.To(&assetData); err != nil {
 		return nil, fmt.Errorf("ReadAsset: %w", err)
 	}
+
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 
 	longestLemmaLength := 0
