@@ -12,6 +12,7 @@ import (
 	"github.com/raf555/kbbi-api/internal/http/httperr"
 	"github.com/raf555/kbbi-api/internal/http/httphandler"
 	"github.com/raf555/kbbi-api/pkg/kbbi"
+	"github.com/raf555/salome/melt/metric"
 	"github.com/samber/lo"
 )
 
@@ -135,6 +136,9 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 // @Router       /api/v1/entry/_random [get]
 func (h *HTTPHandler) Random(ctx context.Context) (httphandler.RedirectResult, error) {
 	lemma := h.dict.RandomLemma()
+
+	mt := metric.FromContext(ctx) // TODO: for metrics test, remove later
+	mt.Count(ctx, "kbbi_random", 1)
 
 	return httphandler.RedirectResult{
 		Code: http.StatusFound,

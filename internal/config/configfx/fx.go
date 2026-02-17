@@ -3,7 +3,8 @@ package configfx
 import (
 	"fmt"
 
-	config "github.com/raf555/salome/config/v1"
+	"github.com/raf555/kbbi-api/internal/config"
+	salomeconfig "github.com/raf555/salome/config/v1"
 	"github.com/raf555/salome/config/v1/providers/infisical"
 	"github.com/raf555/salome/config/v1/providers/os"
 	"github.com/raf555/salome/config/v1/providers/osdotenv"
@@ -22,20 +23,20 @@ var Module = fx.Module("config",
 		fx.Annotate(
 			os.New,
 			fx.As(fx.Self()),
-			fx.As(new(config.Provider)),
+			fx.As(new(salomeconfig.Provider)),
 			fx.ResultTags(`name:"config_provider.os"`),
 		),
 	),
 
 	fx.Provide(
 		fx.Annotate(
-			config.LoadConfigTo[infisicalConfig],
+			salomeconfig.LoadConfigTo[infisicalConfig],
 			fx.ParamTags(`name:"config_provider.os"`),
 		),
 	),
 
 	fx.Provide(
-		func(infisicalCfg infisicalConfig, lc fx.Lifecycle) (config.Provider, error) {
+		func(infisicalCfg infisicalConfig, lc fx.Lifecycle) (salomeconfig.Provider, error) {
 			if infisicalCfg.SiteUrl != "" { // load from cloud if provided
 				infCfg, err := infisical.NewWithOptions(infisicalCfg.SiteUrl, infisical.SecretConfig{
 					ProjectSlug: infisicalCfg.ProjectSlug,
@@ -67,17 +68,19 @@ var Module = fx.Module("config",
 
 	fx.Provide(
 		fx.Annotate(
-			func(provider config.Provider) (*config.Dynamic, error) {
-				return config.NewDynamic(provider)
+			func(provider salomeconfig.Provider) (*salomeconfig.Dynamic, error) {
+				return salomeconfig.NewDynamic(provider)
 			},
 			fx.As(fx.Self()),
-			fx.As(new(config.DynamicConfigManager)),
-			fx.OnStart(func(mgr *config.Dynamic) {
+			fx.As(new(salomeconfig.DynamicConfigManager)),
+			fx.OnStart(func(mgr *salomeconfig.Dynamic) {
 				mgr.Start()
 			}),
-			fx.OnStop(func(mgr *config.Dynamic) {
+			fx.OnStop(func(mgr *salomeconfig.Dynamic) {
 				mgr.Close()
 			}),
 		),
 	),
+
+	fx.Provide(salomeconfig.LoadConfigTo[config.ServerConfig]),
 )
