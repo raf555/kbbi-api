@@ -14,12 +14,16 @@ jobs:
     with:
       image_name: "kbbi"
       tag: ${{ github.ref_name }}
-    secrets: inherit
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     uses: raf555/actions/.github/workflows/deploy.yaml@v1
+    permissions:
+      contents: read
     with:
       image_name: kbbi
       tag: ${{ github.ref_name }}
       path: 'apps/kbbi'
-    secrets: inherit
+    secrets:
+      DEPLOYMENT_TOKEN: ${{ secrets.DEPLOYMENT_TOKEN }}
