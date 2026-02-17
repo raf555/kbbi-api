@@ -13,6 +13,7 @@ import (
 	"github.com/raf555/kbbi-api/internal/http/httphandler"
 	"github.com/raf555/kbbi-api/pkg/kbbi"
 	"github.com/raf555/salome/melt/metric"
+	"github.com/raf555/salome/melt/trace"
 	"github.com/samber/lo"
 )
 
@@ -135,6 +136,9 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 // @Failure      500      {object}  httpres.Error
 // @Router       /api/v1/entry/_random [get]
 func (h *HTTPHandler) Random(ctx context.Context) (httphandler.RedirectResult, error) {
+	ctx, span := trace.FromContext(ctx).Start(ctx, "dictionary.HTTPHandler/Random")
+	defer span.End()
+
 	lemma := h.dict.RandomLemma()
 
 	mt := metric.FromContext(ctx) // TODO: for metrics test, remove later

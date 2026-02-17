@@ -56,10 +56,10 @@ func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *sl
 	router.Use(otelgin.Middleware(cfg.ServiceName,
 		otelgin.WithGinFilter(
 			func(c *gin.Context) bool {
-				return c.FullPath() != ""
+				return c.FullPath() != "" // ignore unknown routes
 			},
 			func(c *gin.Context) bool {
-				return c.FullPath() != "/healthzzz"
+				return c.FullPath() != "/healthzzz" // ignore health check route
 			},
 		),
 	))
