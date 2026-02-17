@@ -11,6 +11,6 @@ import (
 var KitchenSink = fx.Options(
 	configfx.Module,
 	loggerfx.Provider,
+	OtelModule,
 	contextfx.ContextDecoratorOption,
-	// TODO: metrics, traces?
 )
