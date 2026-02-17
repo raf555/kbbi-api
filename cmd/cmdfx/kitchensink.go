@@ -1,6 +1,7 @@
 package cmdfx
 
 import (
+	"github.com/raf555/kbbi-api/internal/config/configfx"
 	"github.com/raf555/kbbi-api/internal/context/contextfx"
 	"github.com/raf555/kbbi-api/internal/logger/loggerfx"
 	"go.uber.org/fx"
@@ -8,6 +9,7 @@ import (
 
 // KitchenSink holds a common dependency for the application.
 var KitchenSink = fx.Options(
+	configfx.Module,
 	loggerfx.Provider,
 	contextfx.ContextDecoratorOption,
 	// TODO: metrics, traces?
