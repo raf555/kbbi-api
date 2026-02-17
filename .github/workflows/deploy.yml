@@ -1,0 +1,25 @@
+name: Build and Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    uses: raf555/actions/.github/workflows/build-ghcr.yaml@v1
+    permissions:
+      contents: read
+      packages: write
+    with:
+      image_name: "kbbi"
+      tag: ${{ github.ref_name }}
+    secrets: inherit
+
+  deploy:
+    uses: raf555/actions/.github/workflows/deploy.yaml@v1
+    with:
+      image_name: kbbi
+      tag: ${{ github.ref_name }}
+      path: 'apps/kbbi'
+    secrets: inherit

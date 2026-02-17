@@ -11,11 +11,10 @@ import (
 )
 
 type infisicalConfig struct {
-	SiteUrl      string `env:"INFISICAL_SITE_URL"`
-	ClientID     string `env:"INFISICAL_CLIENT_ID" validate:"required_with=SiteUrl"`
-	ClientSecret string `env:"INFISICAL_CLIENT_SECRET" validate:"required_with=SiteUrl"`
-	ProjectSlug  string `env:"INFISICAL_PROJECT_SLUG" validate:"required_with=SiteUrl"`
-	Environment  string `env:"INFISICAL_ENVIRONMENT" validate:"required_with=SiteUrl"`
+	SiteUrl     string `env:"INFISICAL_SITE_URL"`
+	IdentityID  string `env:"INFISICAL_KUBERNETES_IDENTITY_ID" validate:"required_with=SiteUrl"`
+	ProjectSlug string `env:"INFISICAL_PROJECT_SLUG" validate:"required_with=SiteUrl"`
+	Environment string `env:"INFISICAL_ENVIRONMENT" validate:"required_with=SiteUrl"`
 }
 
 var Module = fx.Module("config",
@@ -38,15 +37,15 @@ var Module = fx.Module("config",
 	fx.Provide(
 		func(infisicalCfg infisicalConfig, lc fx.Lifecycle) (config.Provider, error) {
 			if infisicalCfg.SiteUrl != "" { // load from cloud if provided
-				infCfg, err := infisical.New(infisical.Config{
-					SiteUrl:      infisicalCfg.SiteUrl,
-					ClientID:     infisicalCfg.ClientID,
-					ClientSecret: infisicalCfg.ClientSecret,
-					ProjectSlug:  infisicalCfg.ProjectSlug,
-					Environment:  infisicalCfg.Environment,
-				})
+				infCfg, err := infisical.NewWithOptions(infisicalCfg.SiteUrl, infisical.SecretConfig{
+					ProjectSlug: infisicalCfg.ProjectSlug,
+					Environment: infisicalCfg.Environment,
+					ConfigPath:  "",
+				},
+					infisical.WithKubernetesAuth(infisicalCfg.IdentityID, ""),
+				)
 				if err != nil {
-					return nil, fmt.Errorf("infisical.New: %w", err)
+					return nil, fmt.Errorf("infisical new: %w", err)
 				}
 
 				lc.Append(fx.StopHook(func() {
@@ -56,6 +55,7 @@ var Module = fx.Module("config",
 				return infCfg, nil
 			}
 
+			// local env
 			defaultCfg, err := osdotenv.New(".env")
 			if err != nil {
 				return nil, fmt.Errorf("osdotenv.New: %w", err)
