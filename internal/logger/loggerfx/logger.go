@@ -18,7 +18,4 @@ var Provider = fx.Module(
 			return logger.WithContext(ctx, log)
 		}
 	}),
-	fx.Invoke(func(l *slog.Logger) {
-		slog.SetDefault(l)
-	}),
 )
