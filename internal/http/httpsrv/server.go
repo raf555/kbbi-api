@@ -49,9 +49,9 @@ func NewServer(param ServerParam) *http.Server {
 func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *slog.Logger) {
 	router.Use(otelgin.Middleware(cfg.ServiceName,
 		otelgin.WithGinFilter(
-			func(c *gin.Context) bool {
-				return c.FullPath() != "" // ignore unknown routes
-			},
+			// func(c *gin.Context) bool {
+			// 	return c.FullPath() != "" // ignore unknown routes
+			// },
 			func(c *gin.Context) bool {
 				return c.FullPath() != "/healthzzz" // ignore health check route
 			},
