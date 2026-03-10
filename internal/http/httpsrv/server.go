@@ -29,6 +29,7 @@ func NewServer(param ServerParam) *http.Server {
 	g := gin.New()
 	g.ContextWithFallback = true
 	g.UseRawPath = true
+	g.TrustedPlatform = gin.PlatformCloudflare // this service is run behind CF
 
 	logger := param.Slog.With(slog.String("label", "http_server"))
 
@@ -47,12 +48,6 @@ func NewServer(param ServerParam) *http.Server {
 }
 
 func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *slog.Logger) {
-	router.Use(sloggin.NewWithConfig(logger, sloggin.Config{
-		Filters: []sloggin.Filter{
-			sloggin.IgnorePathContains("/healthzzz"),
-		},
-	}))
-
 	router.Use(otelgin.Middleware(cfg.ServiceName,
 		otelgin.WithGinFilter(
 			func(c *gin.Context) bool {
@@ -63,6 +58,15 @@ func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *sl
 			},
 		),
 	))
+
+	router.Use(sloggin.NewWithConfig(logger, sloggin.Config{
+		Filters: []sloggin.Filter{
+			sloggin.IgnorePathContains("/healthzzz"),
+		},
+		WithTraceID:   true,
+		WithSpanID:    true,
+		WithUserAgent: true,
+	}))
 
 	router.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
 		logger.ErrorContext(ctx, "Panic occurred", slog.Any("panic", err))
