@@ -62,6 +62,10 @@ func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *sl
 		Filters: []sloggin.Filter{
 			sloggin.IgnorePathContains("/healthzzz"),
 		},
+		WithUserAgent:     true,
+		WithRequestHeader: true,
+		WithTraceID:       true,
+		WithSpanID:        true,
 	}))
 
 	router.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
