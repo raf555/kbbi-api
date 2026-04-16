@@ -56,7 +56,7 @@ Probably the most complete public KBBI API you will ever find.
 
 Latest edition: `Oktober 2025`
 
-The dictionary is mirrored from [Official KBBI Application][] `v6.0.0` with some hand-edited data and customly decoded for author's requirement.
+The dictionary is mirrored from [Official KBBI Application][] `v6.1.0` with some hand-edited data and customly decoded for author's requirement.
 
 The dictionary used by the server will be updated as soon as new version of the application is released.
 
