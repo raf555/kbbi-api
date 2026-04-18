@@ -5,8 +5,8 @@ import (
 )
 
 type AssetData struct {
-	Stats  Stats        `json:"stats"`
-	Lemmas []kbbi.Lemma `json:"lemmas"`
+	Stats  Stats   `json:"stats"`
+	Lemmas []Lemma `json:"lemmas"`
 }
 
 type Stats struct {

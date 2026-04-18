@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/raf555/kbbi-api/pkg/kbbi"
 	"github.com/samber/lo"
 )
 
@@ -27,7 +26,7 @@ type lemmaIndex struct {
 }
 
 type wrappedLemma struct {
-	kbbi.Lemma
+	Lemma
 
 	NormalizedForm string
 }
@@ -113,37 +112,37 @@ func (d *Dictionary) Stats() Stats {
 	return d.stats
 }
 
-func (d *Dictionary) Lemma(lemma string, entryNo int) (kbbi.Lemma, error) {
+func (d *Dictionary) Lemma(lemma string, entryNo int) (Lemma, error) {
 	if lemma == "" {
-		return kbbi.Lemma{}, ErrUnexpectedEmptyLemma
+		return Lemma{}, ErrUnexpectedEmptyLemma
 	}
 
 	if len(lemma) > d.longestLemmaLength {
-		return kbbi.Lemma{}, ErrLemmaTooLong
+		return Lemma{}, ErrLemmaTooLong
 	}
 
 	index := d.lookupInverseIndex(lemma)
 	if index == nil {
-		return kbbi.Lemma{}, ErrLemmaNotFound
+		return Lemma{}, ErrLemmaNotFound
 	}
 
 	lemmaData := d.lemmas[index.idx]
 
 	if entryNo < 0 {
-		return kbbi.Lemma{}, ErrUnexpectedEntryNumber
+		return Lemma{}, ErrUnexpectedEntryNumber
 	}
 
 	if entryNo > 0 {
 		if entryNo > len(lemmaData.Entries) {
-			return kbbi.Lemma{}, ErrEntryNotFound
+			return Lemma{}, ErrEntryNotFound
 		}
 
 		entryIndexes, ok := index.entryNoMap[entryNo]
 		if !ok {
-			return kbbi.Lemma{}, ErrEntryNotFound
+			return Lemma{}, ErrEntryNotFound
 		}
 
-		lemmaData.Entries = lo.Map(entryIndexes, func(idx int, _ int) kbbi.Entry {
+		lemmaData.Entries = lo.Map(entryIndexes, func(idx int, _ int) Entry {
 			return lemmaData.Entries[idx]
 		})
 	}
@@ -169,17 +168,17 @@ func (d *Dictionary) lookupInverseIndex(lemma string) *lemmaIndex {
 	return nil
 }
 
-func (d *Dictionary) RandomLemma() kbbi.Lemma {
+func (d *Dictionary) RandomLemma() Lemma {
 	randomIdx := rand.IntN(len(d.lemmas))
 	return d.lemmas[randomIdx].Lemma
 }
 
-func (d *Dictionary) LemmaOfTheDay() (kbbi.Lemma, error) {
+func (d *Dictionary) LemmaOfTheDay() (Lemma, error) {
 	wotdIdx := d.wotd.TodayLemmaIndex()
 	idx := wotdIdx - 1
 
 	if !d.indexInDictRange(idx) {
-		return kbbi.Lemma{}, fmt.Errorf("%w: %d", ErrUnexpectedWotdIndex, idx)
+		return Lemma{}, fmt.Errorf("%w: %d", ErrUnexpectedWotdIndex, idx)
 	}
 
 	return d.lemmas[idx].Lemma, nil
@@ -189,9 +188,9 @@ func (d *Dictionary) LemmaOfTheDay() (kbbi.Lemma, error) {
 // Search behaves similarly with search feature on the KBBI application.
 //
 // If prefix is empty, Search returns top limit lemmas.
-func (d *Dictionary) Search(prefix string, limit uint) []kbbi.Lemma {
+func (d *Dictionary) Search(prefix string, limit uint) []Lemma {
 	if prefix == "" {
-		return lo.Map(d.lemmas[:min(int(limit), len(d.lemmas))], func(lemma wrappedLemma, _ int) kbbi.Lemma { return lemma.Lemma })
+		return lo.Map(d.lemmas[:min(int(limit), len(d.lemmas))], func(lemma wrappedLemma, _ int) Lemma { return lemma.Lemma })
 	}
 
 	prefix = strings.ToLower(Normalize(prefix, true))
@@ -208,5 +207,5 @@ func (d *Dictionary) Search(prefix string, limit uint) []kbbi.Lemma {
 		return nil
 	}
 
-	return lo.Map(d.lemmas[leftIdx:rightIdx][:min(limit, uint(rightIdx-leftIdx))], func(lemma wrappedLemma, _ int) kbbi.Lemma { return lemma.Lemma })
+	return lo.Map(d.lemmas[leftIdx:rightIdx][:min(limit, uint(rightIdx-leftIdx))], func(lemma wrappedLemma, _ int) Lemma { return lemma.Lemma })
 }

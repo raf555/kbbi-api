@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/raf555/kbbi-api/internal/http/httperr"
 	"github.com/raf555/kbbi-api/internal/http/httphandler"
-	"github.com/raf555/kbbi-api/pkg/kbbi"
 	"github.com/raf555/salome/melt/metric"
 	"github.com/raf555/salome/melt/trace"
 	"github.com/samber/lo"
@@ -124,7 +123,7 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 		}
 	}
 
-	return &EntryResponse{data}, nil
+	return &EntryResponse{data.ToKBBI()}, nil
 }
 
 // Entry godoc
@@ -184,6 +183,6 @@ func (h *HTTPHandler) Search(ctx context.Context, req *SearchRequest) (*SearchRe
 	result := h.dict.Search(req.Lemma, req.Limit)
 
 	return &SearchResponse{
-		Lemmas: lo.Map(result, func(lemma kbbi.Lemma, _ int) string { return lemma.Lemma }),
+		Lemmas: lo.Map(result, func(lemma Lemma, _ int) string { return lemma.Lemma }),
 	}, nil
 }
