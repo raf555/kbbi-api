@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/raf555/kbbi-api/internal/http/httperr"
 	"github.com/raf555/kbbi-api/internal/http/httphandler"
-	"github.com/raf555/salome/melt/metric"
-	"github.com/raf555/salome/melt/trace"
 	"github.com/samber/lo"
 )
 
@@ -30,14 +29,16 @@ func (h *HTTPHandler) MustRegisterRoutes(g *gin.Engine) {
 	entryGroupV1 := g.Group("/api/v1/entry")
 
 	entryGroupV1.GET("/_random",
-		httphandler.MakeSimpleRedirectHandler(
+		httphandler.MakeRedirectHandler(
 			h.Random,
+			httphandler.DefaultRequestBinder,
 		),
 	)
 
 	entryGroupV1.GET("/_wotd",
-		httphandler.MakeSimpleRedirectHandler(
+		httphandler.MakeRedirectHandler(
 			h.WOTD,
+			httphandler.DefaultRequestBinder,
 		),
 	)
 
@@ -93,8 +94,9 @@ func (*HTTPHandler) redirectToLowercase(ctx *gin.Context) {
 // @Tags         entry
 // @Accept       json
 // @Produce      json
-// @Param        entry    path      string  true  "Lemma. E.g. apel, aku (2), etc."
-// @Param        entryNo  query     int	  	false "Lemma's entry number (optional). Start from 1. Will be skipped if there's entry number in the lemma." minimum(1)
+// @Param        entry    path      string  	true  	"Lemma. E.g. apel, aku (2), etc."
+// @Param        entryNo  query     int	  		false 	"Lemma's entry number (optional). Start from 1. Will be skipped if there's entry number in the lemma." minimum(1)
+// @Param        raw	  query     boolean		false	"if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead."
 // @Success      200   	  {object}  kbbi.Lemma
 // @Failure      400      {object}  httpres.Error
 // @Failure      404      {object}  httpres.Error
@@ -123,50 +125,62 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 		}
 	}
 
-	return &EntryResponse{data.ToKBBI()}, nil
+	return &EntryResponse{data.ToKBBI(req.RAW)}, nil
 }
 
 // Entry godoc
 // @Summary      Get Random Lemma
 // @Description  Redirect to the random lemma
 // @Tags         entry
+// @Param        raw	  query     boolean	  	false	"if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead."
 // @Success      200      {object}  kbbi.Lemma
 // @Success      302      {object}  kbbi.Lemma
 // @Failure      500      {object}  httpres.Error
 // @Router       /api/v1/entry/_random [get]
-func (h *HTTPHandler) Random(ctx context.Context) (httphandler.RedirectResult, error) {
-	ctx, span := trace.FromContext(ctx).Start(ctx, "dictionary.HTTPHandler/Random")
-	defer span.End()
-
+func (h *HTTPHandler) Random(ctx context.Context, req *RandomRequest) (httphandler.RedirectResult, error) {
 	lemma := h.dict.RandomLemma()
 
-	mt := metric.FromContext(ctx) // TODO: for metrics test, remove later
-	mt.Count(ctx, "kbbi_random", 1)
-
-	return httphandler.RedirectResult{
+	res := httphandler.RedirectResult{
 		Code: http.StatusFound,
 		Path: url.PathEscape(lemma.Lemma),
-	}, nil
+	}
+
+	if req.RAW {
+		res.Query = url.Values{
+			"raw": []string{strconv.FormatBool(req.RAW)},
+		}
+	}
+
+	return res, nil
 }
 
 // Entry godoc
 // @Summary      Get Lemma of The Day
 // @Description  Redirect to the lemma of the day
 // @Tags         entry
+// @Param        raw	  query     boolean	  	false	"if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead."
 // @Success      200      {object}  kbbi.Lemma
 // @Success      302      {object}  kbbi.Lemma
 // @Failure      500      {object}  httpres.Error
 // @Router       /api/v1/entry/_wotd [get]
-func (h *HTTPHandler) WOTD(ctx context.Context) (httphandler.RedirectResult, error) {
+func (h *HTTPHandler) WOTD(ctx context.Context, req *WOTDRequest) (httphandler.RedirectResult, error) {
 	wotd, err := h.dict.LemmaOfTheDay()
 	if err != nil {
 		return httphandler.RedirectResult{}, fmt.Errorf("h.dict.LemmaOfTheDay: %w", err)
 	}
 
-	return httphandler.RedirectResult{
+	res := httphandler.RedirectResult{
 		Code: http.StatusFound,
 		Path: url.PathEscape(wotd.Lemma),
-	}, nil
+	}
+
+	if req.RAW {
+		res.Query = url.Values{
+			"raw": []string{strconv.FormatBool(req.RAW)},
+		}
+	}
+
+	return res, nil
 }
 
 // Entry godoc

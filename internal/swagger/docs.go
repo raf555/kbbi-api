@@ -22,6 +22,14 @@ const docTemplate = `{
                     "entry"
                 ],
                 "summary": "Get Random Lemma",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead.",
+                        "name": "raw",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -93,6 +101,14 @@ const docTemplate = `{
                     "entry"
                 ],
                 "summary": "Get Lemma of The Day",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead.",
+                        "name": "raw",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -141,6 +157,12 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Lemma's entry number (optional). Start from 1. Will be skipped if there's entry number in the lemma.",
                         "name": "entryNo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead.",
+                        "name": "raw",
                         "in": "query"
                     }
                 ],
@@ -237,6 +259,10 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "isPrecategorical": {
+                    "description": "IsPrecategorical indicates this entry is categorized into \"prakategorial\" in the dictionary.\nIt means the entry on its own does not have actual meaning until it is given affixes.\nIn our context, that means the entry has empty [Definitions] but has at least one [DerivedWords].\n\nE.g. ` + "`" + `acu (1)` + "`" + `, ` + "`" + `acu (2)` + "`" + `, ` + "`" + `adu domba` + "`" + `.",
+                    "type": "boolean"
                 },
                 "metaphors": {
                     "description": "Metaphors contains metaphors of this entry (if any).\nI.e. ` + "`" + `kiasan` + "`" + `.\nE.g. ` + "`" + `leher` + "`" + ` is used in ` + "`" + `leher terasa panjang` + "`" + ` metaphor.",

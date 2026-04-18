@@ -2,6 +2,7 @@ package dictionary
 
 import (
 	"github.com/raf555/kbbi-api/pkg/kbbi"
+	"github.com/samber/lo"
 )
 
 // internal representation of [kbbi.Lemma]
@@ -42,10 +43,10 @@ type (
 	}
 )
 
-func (l Lemma) ToKBBI() kbbi.Lemma {
+func (l Lemma) ToKBBI(raw bool) kbbi.Lemma {
 	entries := make([]kbbi.Entry, len(l.Entries))
 	for i := range l.Entries {
-		entries[i] = l.Entries[i].toKBBI()
+		entries[i] = l.Entries[i].toKBBI(raw)
 	}
 
 	return kbbi.Lemma{
@@ -54,10 +55,10 @@ func (l Lemma) ToKBBI() kbbi.Lemma {
 	}
 }
 
-func (e Entry) toKBBI() kbbi.Entry {
+func (e Entry) toKBBI(raw bool) kbbi.Entry {
 	definitions := make([]kbbi.EntryDefinition, len(e.Definitions))
 	for i := range e.Definitions {
-		definitions[i] = e.Definitions[i].toKBBI()
+		definitions[i] = e.Definitions[i].toKBBI(raw)
 	}
 
 	return kbbi.Entry{
@@ -76,17 +77,17 @@ func (e Entry) toKBBI() kbbi.Entry {
 	}
 }
 
-func (d EntryDefinition) toKBBI() kbbi.EntryDefinition {
+func (d EntryDefinition) toKBBI(raw bool) kbbi.EntryDefinition {
 	labels := make([]kbbi.EntryLabel, len(d.Labels))
 	for i := range d.Labels {
 		labels[i] = d.Labels[i].toKBBI()
 	}
 
 	return kbbi.EntryDefinition{
-		Definition:      d.Definition,
+		Definition:      lo.Ternary(raw, d.RawDefinition, d.Definition),
 		ReferencedLemma: d.ReferencedLemma,
 		Labels:          labels,
-		UsageExamples:   d.UsageExamples,
+		UsageExamples:   lo.Ternary(raw, d.RawUsageExamples, d.UsageExamples),
 	}
 }
 
