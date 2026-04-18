@@ -19,7 +19,7 @@ type EntryRequest struct {
 	Lemma string `uri:"entry" validate:"required"`
 	// EntryNo is optional; value 0 means "no specific entry number requested".
 	EntryNo int  `form:"entryNo" validate:"gte=0"`
-	RAW     bool `form:"raw"`
+	Raw     bool `form:"raw"`
 }
 
 // transform mutates the EntryRequest in place by looking for an entry number in the lemma string.
@@ -46,9 +46,9 @@ type SearchResponse struct {
 }
 
 type RandomRequest struct {
-	RAW bool `form:"raw"`
+	Raw bool `form:"raw"`
 }
 
 type WOTDRequest struct {
-	RAW bool `form:"raw"`
+	Raw bool `form:"raw"`
 }

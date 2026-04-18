@@ -125,7 +125,7 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 		}
 	}
 
-	return &EntryResponse{data.ToKBBI(req.RAW)}, nil
+	return &EntryResponse{data.ToKBBI(req.Raw)}, nil
 }
 
 // Entry godoc
@@ -145,9 +145,9 @@ func (h *HTTPHandler) Random(ctx context.Context, req *RandomRequest) (httphandl
 		Path: url.PathEscape(lemma.Lemma),
 	}
 
-	if req.RAW {
+	if req.Raw {
 		res.Query = url.Values{
-			"raw": []string{strconv.FormatBool(req.RAW)},
+			"raw": []string{strconv.FormatBool(req.Raw)},
 		}
 	}
 
@@ -174,9 +174,9 @@ func (h *HTTPHandler) WOTD(ctx context.Context, req *WOTDRequest) (httphandler.R
 		Path: url.PathEscape(wotd.Lemma),
 	}
 
-	if req.RAW {
+	if req.Raw {
 		res.Query = url.Values{
-			"raw": []string{strconv.FormatBool(req.RAW)},
+			"raw": []string{strconv.FormatBool(req.Raw)},
 		}
 	}
 
