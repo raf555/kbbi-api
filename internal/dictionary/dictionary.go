@@ -133,10 +133,6 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (Lemma, error) {
 	}
 
 	if entryNo > 0 {
-		if entryNo > len(lemmaData.Entries) {
-			return Lemma{}, ErrEntryNotFound
-		}
-
 		entryIndexes, ok := index.entryNoMap[entryNo]
 		if !ok {
 			return Lemma{}, ErrEntryNotFound
