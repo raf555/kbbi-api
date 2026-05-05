@@ -8,10 +8,10 @@ import (
 	slogformatter "github.com/samber/slog-formatter"
 )
 
-func New() *slog.Logger {
+func New(cfg Config) *slog.Logger {
 	var handler slog.Handler
 
-	handler = slog.NewJSONHandler(os.Stdout, nil)
+	handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.Level})
 	handler = log.WithOtelHandler(handler)
 	handler = log.WithFormatter(handler, slogformatter.FormatByKind(slog.KindDuration, func(v slog.Value) slog.Value {
 		return slog.StringValue(v.Duration().String())
