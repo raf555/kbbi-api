@@ -1,15 +1,13 @@
 package dictionary
 
-import "github.com/raf555/kbbi-api/pkg/kbbi"
-
 type WOTDRepo interface {
 	RandomLemmaIndex() int
 	TodayLemmaIndex() int
 }
 
 type DictionaryRepo interface {
-	Lemma(lemma string, entryNo int) (kbbi.Lemma, error)
-	RandomLemma() kbbi.Lemma
-	LemmaOfTheDay() (kbbi.Lemma, error)
-	Search(prefix string, limit uint) []kbbi.Lemma
+	Lemma(lemma string, entryNo int) (Lemma, error)
+	RandomLemma() Lemma
+	LemmaOfTheDay() (Lemma, error)
+	Search(prefix string, limit uint) []Lemma
 }

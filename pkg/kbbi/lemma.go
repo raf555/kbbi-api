@@ -77,6 +77,13 @@ type (
 		// I.e. `kiasan`.
 		// E.g. `leher` is used in `leher terasa panjang` metaphor.
 		Metaphors []string `json:"metaphors"`
+
+		// IsPrecategorical indicates this entry is categorized into "prakategorial" in the dictionary.
+		// It means the entry on its own does not have actual meaning until it is given affixes.
+		// In our context, that means the entry has empty [Definitions] but has at least one [DerivedWords].
+		//
+		// E.g. `acu (1)`, `acu (2)`, `adu domba`.
+		IsPrecategorical bool `json:"isPrecategorical"`
 	}
 
 	// EntryDefinition contains the detail of the entry's definition.

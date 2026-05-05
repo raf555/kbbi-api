@@ -60,6 +60,14 @@ definitions:
         items:
           type: string
         type: array
+      isPrecategorical:
+        description: |-
+          IsPrecategorical indicates this entry is categorized into "prakategorial" in the dictionary.
+          It means the entry on its own does not have actual meaning until it is given affixes.
+          In our context, that means the entry has empty [Definitions] but has at least one [DerivedWords].
+
+          E.g. `acu (1)`, `acu (2)`, `adu domba`.
+        type: boolean
       metaphors:
         description: |-
           Metaphors contains metaphors of this entry (if any).
@@ -168,6 +176,12 @@ paths:
   /api/v1/entry/_random:
     get:
       description: Redirect to the random lemma
+      parameters:
+      - description: "if raw is true, any rendered unicode character (for \U0001D5EF\U0001D5FC\U0001D5F9\U0001D5F1/\U0001D62A\U0001D635\U0001D622\U0001D62D\U0001D62A\U0001D624/etc)
+          will be replaced by HTML tags instead."
+        in: query
+        name: raw
+        type: boolean
       responses:
         "200":
           description: OK
@@ -216,6 +230,12 @@ paths:
   /api/v1/entry/_wotd:
     get:
       description: Redirect to the lemma of the day
+      parameters:
+      - description: "if raw is true, any rendered unicode character (for \U0001D5EF\U0001D5FC\U0001D5F9\U0001D5F1/\U0001D62A\U0001D635\U0001D622\U0001D62D\U0001D62A\U0001D624/etc)
+          will be replaced by HTML tags instead."
+        in: query
+        name: raw
+        type: boolean
       responses:
         "200":
           description: OK
@@ -249,6 +269,11 @@ paths:
         minimum: 1
         name: entryNo
         type: integer
+      - description: "if raw is true, any rendered unicode character (for \U0001D5EF\U0001D5FC\U0001D5F9\U0001D5F1/\U0001D62A\U0001D635\U0001D622\U0001D62D\U0001D62A\U0001D624/etc)
+          will be replaced by HTML tags instead."
+        in: query
+        name: raw
+        type: boolean
       produces:
       - application/json
       responses:

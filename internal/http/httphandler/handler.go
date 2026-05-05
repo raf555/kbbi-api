@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 	"github.com/raf555/kbbi-api/internal/http/httperr"
@@ -88,8 +89,9 @@ func sendResponse[resT any](ctx *ginCtx, res *resT, err error, opts ...handlerOp
 
 type (
 	RedirectResult struct {
-		Code int
-		Path string
+		Code  int
+		Path  string
+		Query url.Values
 	}
 
 	// RedirectHandler is a simple HTTP request handler which accepts request and redirects into given path.
@@ -123,7 +125,11 @@ func MakeRedirectHandler[reqT any](
 			code = http.StatusTemporaryRedirect
 		}
 
-		gCtx.Redirect(code, result.Path)
+		path := result.Path
+		if len(result.Query) > 0 {
+			path += "?" + result.Query.Encode()
+		}
+		gCtx.Redirect(code, path)
 	}
 }
 
