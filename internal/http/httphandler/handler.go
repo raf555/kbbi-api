@@ -60,7 +60,12 @@ func sendResponse[resT any](ctx *ginCtx, res *resT, err error, opts ...handlerOp
 	statusCodeMessage := http.StatusText(statusCode)
 
 	if err != nil {
-		logger.FromContext(ctx).ErrorContext(ctx, "HTTP error occurred", logger.Error(err), slog.Int("code", statusCode))
+		l := logger.FromContext(ctx)
+		logFn := l.ErrorContext
+		if statusCode >= 400 && statusCode < 500 {
+			logFn = l.WarnContext
+		}
+		logFn(ctx, "HTTP error occurred", logger.Error(err), slog.Int("code", statusCode))
 
 		innerErrMsg := statusCodeMessage
 
