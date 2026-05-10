@@ -15,8 +15,8 @@ type Dictionary struct {
 	wotd                   WOTDRepo
 	stats                  Stats
 	longestLemmaLength     int
-	inverseIndex           map[string]*lemmaIndex
-	inverseNormalizedIndex map[string]*lemmaIndex
+	inverseIndex           map[string]lemmaIndex
+	inverseNormalizedIndex map[string]lemmaIndex
 	lemmas                 []wrappedLemma
 }
 
@@ -52,12 +52,12 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 
 	longestLemmaLength := 0
-	inverseIdx := make(map[string]*lemmaIndex, len(assetData.Lemmas))
-	inverseNormalizedIndex := make(map[string]*lemmaIndex)
+	inverseIdx := make(map[string]lemmaIndex, len(assetData.Lemmas))
+	inverseNormalizedIndex := make(map[string]lemmaIndex)
 	lemmas := make([]wrappedLemma, 0, len(assetData.Lemmas))
 
 	for i, lemma := range assetData.Lemmas {
-		idx := &lemmaIndex{
+		idx := lemmaIndex{
 			idx:        i,
 			entryNoMap: map[int][]int{},
 		}
@@ -150,14 +150,14 @@ func (d *Dictionary) lookupInverseIndex(lemma string) *lemmaIndex {
 	// lookup on exact index first
 	index, ok := d.inverseIndex[lemma]
 	if ok {
-		return index
+		return &index
 	}
 
 	// if not found, normalize the lemma, and check on the normalized index
 	normalized := Normalize(lemma, false)
 	index, ok = d.inverseNormalizedIndex[normalized]
 	if ok {
-		return index
+		return &index
 	}
 
 	// otherwise not found
