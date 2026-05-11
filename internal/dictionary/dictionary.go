@@ -15,8 +15,8 @@ type Dictionary struct {
 	wotd                   WOTDRepo
 	stats                  Stats
 	longestLemmaLength     int
-	inverseIndex           map[string]*lemmaIndex
-	inverseNormalizedIndex map[string]*lemmaIndex
+	inverseIndex           map[string]lemmaIndex
+	inverseNormalizedIndex map[string]lemmaIndex
 	lemmas                 []wrappedLemma
 }
 
@@ -52,15 +52,16 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 
 	longestLemmaLength := 0
-	inverseIdx := make(map[string]*lemmaIndex, len(assetData.Lemmas))
-	inverseNormalizedIndex := make(map[string]*lemmaIndex)
+	inverseIdx := make(map[string]lemmaIndex, len(assetData.Lemmas))
+	inverseNormalizedIndex := make(map[string]lemmaIndex)
 	lemmas := make([]wrappedLemma, 0, len(assetData.Lemmas))
 
 	for i, lemma := range assetData.Lemmas {
-		idx := &lemmaIndex{
-			idx:        i,
-			entryNoMap: map[int][]int{},
+		idx := lemmaIndex{
+			idx: i,
 		}
+
+		entryNoMap := map[int][]int{}
 
 		// lookup and map entry index if any
 		for j, def := range lemma.Entries {
@@ -71,7 +72,11 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 
 			// there can be multiple entries with same number. E.g. ketak (4)
 			// could be misinput from KBBI but for now making the behavior the same as the website.
-			idx.entryNoMap[entryNo] = append(idx.entryNoMap[entryNo], j)
+			entryNoMap[entryNo] = append(entryNoMap[entryNo], j)
+		}
+
+		if len(entryNoMap) > 0 {
+			idx.entryNoMap = entryNoMap
 		}
 
 		inverseIdx[lemma.Lemma] = idx
@@ -121,8 +126,8 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (Lemma, error) {
 		return Lemma{}, ErrLemmaTooLong
 	}
 
-	index := d.lookupInverseIndex(lemma)
-	if index == nil {
+	index, ok := d.lookupInverseIndex(lemma)
+	if !ok {
 		return Lemma{}, ErrLemmaNotFound
 	}
 
@@ -146,22 +151,22 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (Lemma, error) {
 	return lemmaData.Lemma, nil
 }
 
-func (d *Dictionary) lookupInverseIndex(lemma string) *lemmaIndex {
+func (d *Dictionary) lookupInverseIndex(lemma string) (lemmaIndex, bool) {
 	// lookup on exact index first
 	index, ok := d.inverseIndex[lemma]
 	if ok {
-		return index
+		return index, true
 	}
 
 	// if not found, normalize the lemma, and check on the normalized index
 	normalized := Normalize(lemma, false)
 	index, ok = d.inverseNormalizedIndex[normalized]
 	if ok {
-		return index
+		return index, true
 	}
 
 	// otherwise not found
-	return nil
+	return lemmaIndex{}, false
 }
 
 func (d *Dictionary) RandomLemma() Lemma {
