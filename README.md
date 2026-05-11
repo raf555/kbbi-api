@@ -84,7 +84,7 @@ go generate ./...
 
 Once success, you should be able to open http://localhost:8888 in your browser.
 
-[Official KBBI Website]: https://kbbi.kemdikbud.go.id/
+[Official KBBI Website]: https://kbbi.kemendikdasmen.go.id/
 
 [Official KBBI Application]: https://play.google.com/store/apps/details?id=yuku.kbbi5
 
