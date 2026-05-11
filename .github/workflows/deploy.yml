@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: raf555/actions/.github/workflows/build-ghcr.yaml@v1
+    uses: raf555/actions/.github/workflows/build-ghcr.yaml@v1.1
     permissions:
       contents: read
       packages: write
