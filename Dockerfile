@@ -1,5 +1,7 @@
 FROM golang:1.26 AS builder
 
+ARG VERSION
+
 WORKDIR /app
 
 COPY pkg/kbbi/ ./pkg/kbbi/
