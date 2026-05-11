@@ -8,6 +8,7 @@ import (
 	"github.com/raf555/kbbi-api/internal/config"
 	contextx "github.com/raf555/kbbi-api/internal/context"
 	"github.com/raf555/kbbi-api/internal/context/contextfx"
+	"github.com/raf555/kbbi-api/internal/version"
 	"github.com/raf555/salome/melt/metric"
 	"github.com/raf555/salome/melt/otel"
 	"github.com/raf555/salome/melt/trace"
@@ -33,6 +34,7 @@ var OtelModule = fx.Module(
 			func(ctx context.Context, cfg config.ServerConfig) (otel.OpenTelemetry, error) {
 				return otel.NewOrNoop(ctx, cfg.ServiceName,
 					otel.WithPrometheusMetricsBridge(prometheus.DefaultGatherer),
+					otel.WithServiceVersion(version.Version),
 				)
 			},
 			fx.OnStop(func(ctx context.Context, ot otel.OpenTelemetry) error {
