@@ -3,9 +3,12 @@ package cmdfx
 import (
 	"context"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/raf555/kbbi-api/internal/config"
 	contextx "github.com/raf555/kbbi-api/internal/context"
 	"github.com/raf555/kbbi-api/internal/context/contextfx"
+	"github.com/raf555/kbbi-api/internal/version"
 	"github.com/raf555/salome/melt/metric"
 	"github.com/raf555/salome/melt/otel"
 	"github.com/raf555/salome/melt/trace"
@@ -14,13 +17,25 @@ import (
 	"go.uber.org/fx"
 )
 
+func init() {
+	prometheus.Unregister(collectors.NewGoCollector())
+	prometheus.MustRegister(collectors.NewGoCollector(
+		collectors.WithGoCollectorRuntimeMetrics(
+			collectors.MetricsAll,
+		),
+	))
+}
+
 var OtelModule = fx.Module(
 	"otel",
 
 	fx.Provide(
 		fx.Annotate(
 			func(ctx context.Context, cfg config.ServerConfig) (otel.OpenTelemetry, error) {
-				return otel.NewOrNoop(ctx, cfg.ServiceName)
+				return otel.NewOrNoop(ctx, cfg.ServiceName,
+					otel.WithPrometheusMetricsBridge(prometheus.DefaultGatherer),
+					otel.WithServiceVersion(version.Version),
+				)
 			},
 			fx.OnStop(func(ctx context.Context, ot otel.OpenTelemetry) error {
 				return ot.Shutdown(ctx)
