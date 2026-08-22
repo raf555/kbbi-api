@@ -39,11 +39,16 @@ func NewServer(param ServerParam) *http.Server {
 		routerer.MustRegisterRoutes(g)
 	}
 
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	protocols.SetUnencryptedHTTP2(true)
+
 	return &http.Server{
 		Handler:      g,
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		ReadTimeout:  param.Conf.HTTPServerReadTimeout,
 		WriteTimeout: param.Conf.HTTPServerWriteTimeout,
+		Protocols:    protocols,
 	}
 }
 
@@ -67,6 +72,17 @@ func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *sl
 		WithSpanID:    true,
 		WithUserAgent: true,
 	}))
+
+	router.Use(func(ctx *gin.Context) {
+		sloggin.AddCustomAttributes(ctx, slog.GroupAttrs(
+			"http_protocol",
+			slog.String("proto", ctx.Request.Proto),
+			slog.Int("proto_major", ctx.Request.ProtoMajor),
+			slog.Int("proto_minor", ctx.Request.ProtoMinor),
+			slog.Bool("tls", ctx.Request.TLS != nil),
+			slog.Bool("http2", ctx.Request.ProtoMajor == 2),
+		))
+	})
 
 	router.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
 		logger.ErrorContext(ctx, "Panic occurred", slog.Any("panic", err))
