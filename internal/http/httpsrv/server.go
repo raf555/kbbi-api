@@ -73,17 +73,6 @@ func registerMiddlewares(cfg config.ServerConfig, router *gin.Engine, logger *sl
 		WithUserAgent: true,
 	}))
 
-	router.Use(func(ctx *gin.Context) {
-		sloggin.AddCustomAttributes(ctx, slog.GroupAttrs(
-			"http_protocol",
-			slog.String("proto", ctx.Request.Proto),
-			slog.Int("proto_major", ctx.Request.ProtoMajor),
-			slog.Int("proto_minor", ctx.Request.ProtoMinor),
-			slog.Bool("tls", ctx.Request.TLS != nil),
-			slog.Bool("http2", ctx.Request.ProtoMajor == 2),
-		))
-	})
-
 	router.Use(gin.CustomRecovery(func(ctx *gin.Context, err any) {
 		logger.ErrorContext(ctx, "Panic occurred", slog.Any("panic", err))
 
