@@ -42,6 +42,7 @@ func NewServer(param ServerParam) *http.Server {
 	protocols := new(http.Protocols)
 	protocols.SetHTTP1(true)
 	protocols.SetUnencryptedHTTP2(true)
+	protocols.SetHTTP2(true)
 
 	return &http.Server{
 		Handler:      g,
