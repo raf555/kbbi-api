@@ -39,11 +39,17 @@ func NewServer(param ServerParam) *http.Server {
 		routerer.MustRegisterRoutes(g)
 	}
 
+	protocols := new(http.Protocols)
+	protocols.SetHTTP1(true)
+	protocols.SetUnencryptedHTTP2(true)
+	protocols.SetHTTP2(true)
+
 	return &http.Server{
 		Handler:      g,
 		ErrorLog:     slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		ReadTimeout:  param.Conf.HTTPServerReadTimeout,
 		WriteTimeout: param.Conf.HTTPServerWriteTimeout,
+		Protocols:    protocols,
 	}
 }
 
