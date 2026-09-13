@@ -418,7 +418,8 @@
 
         <div class="search-wrap">
             <div class="search-box">
-                <input id="searchInput" type="text" placeholder="Cari kata, mis. apel, suka, aku…" autocomplete="off">
+                <input id="searchInput" type="text" placeholder="Cari kata, mis. apel, suka, aku…" autocomplete="off"
+                    aria-label="Cari kata">
                 <button class="go" id="searchBtn">CARI</button>
             </div>
             <div class="suggest-list" id="suggestList"></div>
@@ -454,7 +455,9 @@
 
         function escapeHtml(str) {
             if (str === undefined || str === null) return '';
-            return String(str);
+            return String(str).replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
         }
 
         function showState(msg, isError) {
@@ -525,10 +528,11 @@
         async function runSuggest(q) {
             try {
                 const data = await fetchJson(`${API_BASE}/entry/_search?entry=${encodeURIComponent(q)}&limit=8`);
+                if (q !== searchInput.value.trim()) return; // stale response, input has changed since
                 const lemmas = (data && data.lemmas) || [];
                 renderSuggestions(lemmas);
             } catch (e) {
-                hideSuggestions();
+                if (q === searchInput.value.trim()) hideSuggestions();
             }
         }
 
