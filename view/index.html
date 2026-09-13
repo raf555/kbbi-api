@@ -455,6 +455,7 @@
         let currentSuggestions = [];
         let suggestGen = 0; // invalidates in-flight suggestion requests when bumped
         let viewGen = 0;    // invalidates in-flight doSearch/random/wotd requests when bumped
+        let currentLemma = null; // normalized lemma currently on screen, to skip redundant re-searches
 
         function escapeHtml(str) {
             if (str === undefined || str === null) return '';
@@ -626,6 +627,13 @@
         // ---------- Core actions ----------
         async function doSearch(entry, updateHistory = true) {
             if (!entry) return;
+            const normalized = entry.trim().toLowerCase();
+            if (normalized && normalized === currentLemma) {
+                // Same word already on screen, avoid a redundant network call.
+                hideSuggestions();
+                searchInput.value = entry;
+                return;
+            }
             hideSuggestions();
             searchInput.value = entry;
             showLoading();
@@ -634,6 +642,7 @@
                 const data = await fetchJson(`${API_BASE}/entry/${encodeURIComponent(entry)}?raw=true`);
                 if (gen !== viewGen) return; // superseded by a newer search/random/wotd action
                 renderLemma(data);
+                currentLemma = (data.lemma || entry).trim().toLowerCase();
                 if (updateHistory) updateUrl(data.lemma || entry);
             } catch (e) {
                 if (gen !== viewGen) return;
@@ -654,7 +663,10 @@
                 if (gen !== viewGen) return;
                 searchInput.value = data.lemma || '';
                 renderLemma(data);
-                if (data.lemma) updateUrl(data.lemma);
+                if (data.lemma) {
+                    currentLemma = data.lemma.trim().toLowerCase();
+                    updateUrl(data.lemma);
+                }
             } catch (e) {
                 if (gen !== viewGen) return;
                 showState('Gagal memuat kata acak. Coba lagi.', true);
@@ -671,6 +683,7 @@
                 if (gen !== viewGen) return;
                 searchInput.value = data.lemma || '';
                 renderLemma(data, true);
+                currentLemma = (data.lemma || '').trim().toLowerCase();
                 if (updateHistory) clearUrl();
             } catch (e) {
                 if (gen !== viewGen) return;
