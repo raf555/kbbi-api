@@ -419,11 +419,10 @@
         <div class="search-wrap">
             <div class="search-box">
                 <input id="searchInput" type="text" placeholder="Cari kata, mis. apel, suka, aku…" autocomplete="off"
-                    aria-label="Cari kata" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                    aria-controls="suggestList">
+                    aria-label="Cari kata">
                 <button class="go" id="searchBtn">CARI</button>
             </div>
-            <div class="suggest-list" id="suggestList" role="listbox"></div>
+            <div class="suggest-list" id="suggestList"></div>
         </div>
 
         <div class="quick-actions">
@@ -453,8 +452,6 @@
         let debounceTimer = null;
         let activeSuggestIndex = -1;
         let currentSuggestions = [];
-        let suggestGen = 0; // invalidates in-flight suggestion requests when bumped
-        let viewGen = 0;    // invalidates in-flight doSearch/random/wotd requests when bumped
         let currentLemma = null; // normalized lemma currently on screen, to skip redundant re-searches
 
         function escapeHtml(str) {
@@ -473,23 +470,14 @@
         }
 
         async function fetchJson(url) {
-            let res;
-            try {
-                res = await fetch(url);
-            } catch (networkErr) {
-                const err = new Error('Gagal menghubungi server. Periksa koneksi Anda.');
-                err.isNetworkError = true;
-                throw err;
-            }
+            const res = await fetch(url);
             if (!res.ok) {
                 let msg = 'Terjadi kesalahan (' + res.status + ')';
                 try {
                     const errBody = await res.json();
                     if (errBody && errBody.message) msg = errBody.message;
                 } catch (e) { }
-                const err = new Error(msg);
-                err.status = res.status;
-                throw err;
+                throw new Error(msg);
             }
             return res.json();
         }
@@ -498,8 +486,8 @@
         searchInput.addEventListener('input', () => {
             const q = searchInput.value.trim();
             clearTimeout(debounceTimer);
-            hideSuggestions(); // drop stale list/selection immediately, and invalidate any in-flight request
             if (q.length === 0) {
+                hideSuggestions();
                 return;
             }
             debounceTimer = setTimeout(() => runSuggest(q), 250);
@@ -534,29 +522,18 @@
         });
 
         function updateActiveSuggestion(items) {
-            items.forEach((el, i) => {
-                const isActive = i === activeSuggestIndex;
-                el.classList.toggle('active', isActive);
-                el.setAttribute('aria-selected', isActive ? 'true' : 'false');
-            });
-            if (items[activeSuggestIndex]) {
-                items[activeSuggestIndex].scrollIntoView({ block: 'nearest' });
-                searchInput.setAttribute('aria-activedescendant', items[activeSuggestIndex].id);
-            } else {
-                searchInput.removeAttribute('aria-activedescendant');
-            }
+            items.forEach((el, i) => el.classList.toggle('active', i === activeSuggestIndex));
+            if (items[activeSuggestIndex]) items[activeSuggestIndex].scrollIntoView({ block: 'nearest' });
         }
 
         async function runSuggest(q) {
-            const gen = ++suggestGen; // this call owns the latest generation
             try {
                 const data = await fetchJson(`${API_BASE}/entry/_search?entry=${encodeURIComponent(q)}&limit=8`);
-                if (gen !== suggestGen) return; // superseded by a newer input/action since this request started
+                if (q !== searchInput.value.trim()) return; // stale response, input has changed since
                 const lemmas = (data && data.lemmas) || [];
                 renderSuggestions(lemmas);
             } catch (e) {
-                if (gen !== suggestGen) return;
-                clearSuggestionDom();
+                if (q === searchInput.value.trim()) hideSuggestions();
             }
         }
 
@@ -564,12 +541,10 @@
             currentSuggestions = lemmas;
             activeSuggestIndex = -1;
             if (!lemmas.length) {
-                clearSuggestionDom();
+                hideSuggestions();
                 return;
             }
-            suggestList.innerHTML = lemmas.map((l, i) =>
-                `<div id="suggest-opt-${i}" role="option" aria-selected="false">${escapeHtml(l)}</div>`
-            ).join('');
+            suggestList.innerHTML = lemmas.map(l => `<div>${escapeHtml(l)}</div>`).join('');
             Array.from(suggestList.children).forEach((el, i) => {
                 el.addEventListener('mousedown', (e) => {
                     e.preventDefault();
@@ -577,21 +552,13 @@
                 });
             });
             suggestList.classList.add('show');
-            searchInput.setAttribute('aria-expanded', 'true');
         }
 
-        function clearSuggestionDom() {
+        function hideSuggestions() {
             suggestList.classList.remove('show');
             suggestList.innerHTML = '';
             currentSuggestions = [];
             activeSuggestIndex = -1;
-            searchInput.setAttribute('aria-expanded', 'false');
-            searchInput.removeAttribute('aria-activedescendant');
-        }
-
-        function hideSuggestions() {
-            suggestGen++; // invalidate any suggestion request still in flight
-            clearSuggestionDom();
         }
 
         document.addEventListener('click', (e) => {
@@ -637,30 +604,21 @@
             hideSuggestions();
             searchInput.value = entry;
             showLoading();
-            const gen = ++viewGen;
             try {
                 const data = await fetchJson(`${API_BASE}/entry/${encodeURIComponent(entry)}?raw=true`);
-                if (gen !== viewGen) return; // superseded by a newer search/random/wotd action
                 renderLemma(data);
                 currentLemma = (data.lemma || entry).trim().toLowerCase();
                 if (updateHistory) updateUrl(data.lemma || entry);
             } catch (e) {
-                if (gen !== viewGen) return;
-                if (e.status === 404) {
-                    showState(`Kata “${escapeHtml(entry)}” tidak ditemukan dalam KBBI.`, true);
-                } else {
-                    showState(`Gagal memuat data: ${escapeHtml(e.message || 'terjadi kesalahan')}`, true);
-                }
+                showState(`Kata “${escapeHtml(entry)}” tidak ditemukan dalam KBBI.`, true);
                 if (updateHistory) updateUrl(entry);
             }
         }
 
         document.getElementById('btnRandom').addEventListener('click', async () => {
             showLoading();
-            const gen = ++viewGen;
             try {
                 const data = await fetchJson(`${API_BASE}/entry/_random?raw=true`);
-                if (gen !== viewGen) return;
                 searchInput.value = data.lemma || '';
                 renderLemma(data);
                 if (data.lemma) {
@@ -668,7 +626,6 @@
                     updateUrl(data.lemma);
                 }
             } catch (e) {
-                if (gen !== viewGen) return;
                 showState('Gagal memuat kata acak. Coba lagi.', true);
             }
         });
@@ -677,16 +634,13 @@
 
         async function loadWotd(updateHistory = true) {
             showLoading();
-            const gen = ++viewGen;
             try {
                 const data = await fetchJson(`${API_BASE}/entry/_wotd?raw=true`);
-                if (gen !== viewGen) return;
                 searchInput.value = data.lemma || '';
                 renderLemma(data, true);
                 currentLemma = (data.lemma || '').trim().toLowerCase();
                 if (updateHistory) clearUrl();
             } catch (e) {
-                if (gen !== viewGen) return;
                 showState('Gagal memuat kata hari ini. Coba lagi.', true);
             }
         }
