@@ -2,7 +2,7 @@ FROM node:22-alpine AS html-minifier
 
 WORKDIR /app
 
-COPY assets/view/index.html .
+COPY view/index.html .
 RUN npx --yes html-minifier-terser@7.2.0 index.html \
 	--collapse-whitespace \
 	--minify-css \
@@ -33,6 +33,6 @@ FROM gcr.io/distroless/static-debian12
 
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY --from=html-minifier /app/index.min.html ./assets/view/index.html
+COPY --from=html-minifier /app/index.min.html ./view/index.html
 ENTRYPOINT ["./main"]
 CMD []

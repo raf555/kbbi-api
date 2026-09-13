@@ -11,5 +11,5 @@ func New() (*HTTPHandler, error) {
 }
 
 func (h *HTTPHandler) MustRegisterRoutes(g *gin.Engine) {
-	g.Static("/ui", "assets/view")
+	g.Static("/ui", "view")
 }
