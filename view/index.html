@@ -211,9 +211,6 @@
         }
 
         .lemma-head {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
             border-bottom: 1px solid var(--line);
             padding-bottom: 10px;
             margin-bottom: 18px;
@@ -223,14 +220,28 @@
             font-family: 'Source Serif 4', serif;
             font-size: 2.1rem;
             font-weight: 700;
+            line-height: 1.25;
             margin: 0;
             color: var(--maroon-deep);
+            overflow-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+        }
+
+        .lemma-head h1.lemma-sm {
+            font-size: 1.55rem;
+        }
+
+        .lemma-head h1.lemma-xs {
+            font-size: 1.25rem;
         }
 
         .lemma-head .count {
-            font-size: 0.78rem;
+            display: block;
+            font-size: 0.75rem;
             color: var(--ink-soft);
             font-family: 'Inter', sans-serif;
+            margin-top: 6px;
         }
 
         .entry-card {
@@ -699,11 +710,13 @@
                 showState('Tidak ada data untuk kata ini.', true);
                 return;
             }
+            const len = (lemma.lemma || '').length;
+            const sizeClass = len > 45 ? 'lemma-xs' : len > 28 ? 'lemma-sm' : '';
             const entriesHtml = lemma.entries.map(renderEntry).join('');
             resultEl.innerHTML = `
     <div class="lemma-head">
-      <h1>${escapeHtml(lemma.lemma)}</h1>
-      <div class="count">${isWotd ? 'Kata Hari Ini · ' : ''}${lemma.entries.length} entri</div>
+      <h1 class="${sizeClass}">${escapeHtml(lemma.lemma)}</h1>
+      <span class="count">${isWotd ? 'Kata Hari Ini · ' : ''}${lemma.entries.length} entri</span>
     </div>
     ${entriesHtml}
   `;
@@ -814,6 +827,16 @@
 
         document.addEventListener('click', () => {
             document.querySelectorAll('.label-badge.tooltip-active').forEach(b => b.classList.remove('tooltip-active'));
+        });
+
+        // Desktop: hovering a different badge should retire a previously clicked (tooltip-active)
+        // one, otherwise its tap-triggered tooltip keeps showing alongside the hovered one.
+        resultEl.addEventListener('mouseover', (e) => {
+            const badge = e.target.closest('.label-badge');
+            if (!badge) return;
+            document.querySelectorAll('.label-badge.tooltip-active').forEach(b => {
+                if (b !== badge) b.classList.remove('tooltip-active');
+            });
         });
 
         // On load: restore lemma from URL (?kata=...) if present, otherwise show word of the day
