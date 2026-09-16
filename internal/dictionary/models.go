@@ -46,9 +46,11 @@ type SearchResponse struct {
 }
 
 type RandomRequest struct {
-	Raw bool `form:"raw"`
+	Raw        bool `form:"raw"`
+	NoRedirect bool `form:"noredirect"`
 }
 
 type WOTDRequest struct {
-	Raw bool `form:"raw"`
+	Raw        bool `form:"raw"`
+	NoRedirect bool `form:"noredirect"`
 }

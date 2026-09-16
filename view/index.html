@@ -296,6 +296,7 @@
 
         .label-badge {
             display: inline-block;
+            position: relative;
             font-size: 0.68rem;
             font-weight: 600;
             letter-spacing: 0.2px;
@@ -305,7 +306,48 @@
             padding: 1px 5px;
             margin-right: 4px;
             font-family: 'Inter', sans-serif;
-            cursor: default;
+            cursor: pointer;
+        }
+
+        .label-badge::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 7px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ink);
+            color: #fff;
+            padding: 5px 9px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: normal;
+            white-space: nowrap;
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+        }
+
+        .label-badge::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--ink);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+        }
+
+        .label-badge:hover::after,
+        .label-badge:hover::before,
+        .label-badge.tooltip-active::after,
+        .label-badge.tooltip-active::before {
+            opacity: 1;
         }
 
         .def-text b {
@@ -484,6 +526,11 @@
 
         // ---------- Search suggestions ----------
         searchInput.addEventListener('input', () => {
+            const caretStart = searchInput.selectionStart;
+            const caretEnd = searchInput.selectionEnd;
+            searchInput.value = searchInput.value.toLowerCase();
+            searchInput.setSelectionRange(caretStart, caretEnd);
+
             const q = searchInput.value.trim();
             clearTimeout(debounceTimer);
             if (q.length === 0) {
@@ -598,11 +645,11 @@
             if (normalized && normalized === currentLemma) {
                 // Same word already on screen, avoid a redundant network call.
                 hideSuggestions();
-                searchInput.value = entry;
+                searchInput.value = entry.toLowerCase();
                 return;
             }
             hideSuggestions();
-            searchInput.value = entry;
+            searchInput.value = entry.toLowerCase();
             showLoading();
             try {
                 const data = await fetchJson(`${API_BASE}/entry/${encodeURIComponent(entry)}?raw=true`);
@@ -618,8 +665,8 @@
         document.getElementById('btnRandom').addEventListener('click', async () => {
             showLoading();
             try {
-                const data = await fetchJson(`${API_BASE}/entry/_random?raw=true`);
-                searchInput.value = data.lemma || '';
+                const data = await fetchJson(`${API_BASE}/entry/_random?raw=true&noredirect=true`);
+                searchInput.value = (data.lemma || '').toLowerCase();
                 renderLemma(data);
                 if (data.lemma) {
                     currentLemma = data.lemma.trim().toLowerCase();
@@ -635,8 +682,8 @@
         async function loadWotd(updateHistory = true) {
             showLoading();
             try {
-                const data = await fetchJson(`${API_BASE}/entry/_wotd?raw=true`);
-                searchInput.value = data.lemma || '';
+                const data = await fetchJson(`${API_BASE}/entry/_wotd?raw=true&noredirect=true`);
+                searchInput.value = (data.lemma || '').toLowerCase();
                 renderLemma(data, true);
                 currentLemma = (data.lemma || '').trim().toLowerCase();
                 if (updateHistory) clearUrl();
@@ -725,7 +772,7 @@
 
         function renderDefinition(def) {
             const labels = (def.labels || []).map(l =>
-                `<span class="label-badge" title="${escapeHtml(l.kind)}: ${escapeHtml(l.name)}">${escapeHtml(l.code)}</span>`
+                `<span class="label-badge" data-tooltip="${escapeHtml(l.kind)}: ${escapeHtml(l.name)}">${escapeHtml(l.code)}</span>`
             ).join('');
 
             let bodyHtml = '';
@@ -755,6 +802,19 @@
                 el.addEventListener('click', () => doSearch(el.getAttribute('data-word')));
             });
         }
+
+        resultEl.addEventListener('click', (e) => {
+            const badge = e.target.closest('.label-badge');
+            if (!badge) return;
+            e.stopPropagation();
+            const wasActive = badge.classList.contains('tooltip-active');
+            document.querySelectorAll('.label-badge.tooltip-active').forEach(b => b.classList.remove('tooltip-active'));
+            if (!wasActive) badge.classList.add('tooltip-active');
+        });
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.label-badge.tooltip-active').forEach(b => b.classList.remove('tooltip-active'));
+        });
 
         // On load: restore lemma from URL (?kata=...) if present, otherwise show word of the day
         const initialWord = new URLSearchParams(location.search).get(QUERY_PARAM);
