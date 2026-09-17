@@ -665,8 +665,8 @@
             try {
                 const data = await fetchJson(`${API_BASE}/entry/${encodeURIComponent(entry)}?raw=true`);
                 renderLemma(data);
-                currentLemma = (data.lemma || entry).trim().toLowerCase();
-                if (updateHistory) updateUrl(data.lemma || entry);
+                currentLemma = normalized;
+                if (updateHistory) updateUrl(entry);
             } catch (e) {
                 showState(`Kata “${escapeHtml(entry)}” tidak ditemukan dalam KBBI.`, true);
                 if (updateHistory) updateUrl(entry);
