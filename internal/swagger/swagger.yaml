@@ -182,6 +182,10 @@ paths:
         in: query
         name: raw
         type: boolean
+      - description: if noredirect is true, return the lemma instead of redirecting.
+        in: query
+        name: noredirect
+        type: boolean
       responses:
         "200":
           description: OK
@@ -235,6 +239,10 @@ paths:
           will be replaced by HTML tags instead."
         in: query
         name: raw
+        type: boolean
+      - description: if noredirect is true, return the lemma instead of redirecting.
+        in: query
+        name: noredirect
         type: boolean
       responses:
         "200":

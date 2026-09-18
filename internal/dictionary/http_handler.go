@@ -32,6 +32,7 @@ func (h *HTTPHandler) MustRegisterRoutes(g *gin.Engine) {
 		httphandler.MakeRedirectHandler(
 			h.Random,
 			httphandler.DefaultRequestBinder,
+			httphandler.WithPureJSONSerializer(),
 		),
 	)
 
@@ -39,6 +40,7 @@ func (h *HTTPHandler) MustRegisterRoutes(g *gin.Engine) {
 		httphandler.MakeRedirectHandler(
 			h.WOTD,
 			httphandler.DefaultRequestBinder,
+			httphandler.WithPureJSONSerializer(),
 		),
 	)
 
@@ -133,6 +135,7 @@ func (h *HTTPHandler) Entry(ctx context.Context, req *EntryRequest) (*EntryRespo
 // @Description  Redirect to the random lemma
 // @Tags         entry
 // @Param        raw	  query     boolean	  	false	"if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead."
+// @Param        noredirect query boolean        false   "if noredirect is true, return the lemma instead of redirecting."
 // @Success      200      {object}  kbbi.Lemma
 // @Success      302      {object}  kbbi.Lemma
 // @Failure      500      {object}  httpres.Error
@@ -151,6 +154,11 @@ func (h *HTTPHandler) Random(ctx context.Context, req *RandomRequest) (httphandl
 		}
 	}
 
+	if req.NoRedirect {
+		res.Response = lemma.ToKBBI(req.Raw)
+		return res, nil
+	}
+
 	return res, nil
 }
 
@@ -159,6 +167,7 @@ func (h *HTTPHandler) Random(ctx context.Context, req *RandomRequest) (httphandl
 // @Description  Redirect to the lemma of the day
 // @Tags         entry
 // @Param        raw	  query     boolean	  	false	"if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead."
+// @Param        noredirect query boolean        false   "if noredirect is true, return the lemma instead of redirecting."
 // @Success      200      {object}  kbbi.Lemma
 // @Success      302      {object}  kbbi.Lemma
 // @Failure      500      {object}  httpres.Error
@@ -178,6 +187,11 @@ func (h *HTTPHandler) WOTD(ctx context.Context, req *WOTDRequest) (httphandler.R
 		res.Query = url.Values{
 			"raw": []string{strconv.FormatBool(req.Raw)},
 		}
+	}
+
+	if req.NoRedirect {
+		res.Response = wotd.ToKBBI(req.Raw)
+		return res, nil
 	}
 
 	return res, nil

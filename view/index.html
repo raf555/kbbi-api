@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kamus Besar Bahasa Indonesia</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230e4d92'/%3E%3Cpath d='M32 20c-4-3-10-4-16-3v27c6-1 12 0 16 3 4-3 10-4 16-3V17c-6-1-12 0-16 3z' fill='%23ffffff'/%3E%3Cpath d='M32 20v27' stroke='%230e4d92' stroke-width='2' fill='none'/%3E%3Cpath d='M19 23c3-1 7-1 10 0M19 29c3-1 7-1 10 0M19 35c3-1 7-1 10 0' stroke='%230e4d92' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M35 23c3-1 7-1 10 0M35 29c3-1 7-1 10 0M35 35c3-1 7-1 10 0' stroke='%230e4d92' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper: #eef3f7;
+            --paper-raised: #ffffff;
+            --ink: #16283a;
+            --ink-soft: #5b7285;
+            --maroon: #0e4d92;
+            --maroon-deep: #0a355f;
+            --teal: #146a8c;
+            --gold: #b5842a;
+            --line: #c9dbe8;
+            --line-soft: #dce9f2;
+            --chip-bg: #dcebf5;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background:
+                radial-gradient(1200px 600px at 15% -10%, #ffffff 0%, transparent 60%),
+                var(--paper);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .serif {
+            font-family: 'Source Serif 4', serif;
+        }
+
+        /* ===== Layout ===== */
+        .page {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 48px 20px 100px;
+        }
+
+        header.brand {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 14px;
+            margin-bottom: 6px;
+        }
+
+        header.brand .title {
+            font-family: 'Source Serif 4', serif;
+            font-weight: 700;
+            font-size: 2rem;
+            letter-spacing: 0.5px;
+        }
+
+        header.brand .title em {
+            font-style: normal;
+            color: var(--maroon);
+        }
+
+        header.brand .subtitle {
+            font-size: 0.8rem;
+            color: var(--ink-soft);
+            text-align: right;
+            line-height: 1.4;
+        }
+
+        /* ===== Search ===== */
+        .search-wrap {
+            position: relative;
+            margin: 28px 0 8px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--paper-raised);
+            border: 1.5px solid var(--ink);
+            border-radius: 2px;
+            overflow: visible;
+            box-shadow: 3px 3px 0 var(--line);
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 14px 16px;
+            font-size: 1.05rem;
+            font-family: 'Source Serif 4', serif;
+            color: var(--ink);
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #8fa7ba;
+            font-style: italic;
+        }
+
+        .search-box button.go {
+            border: none;
+            background: var(--maroon);
+            color: var(--paper-raised);
+            padding: 0 20px;
+            align-self: stretch;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+        }
+
+        .search-box button.go:hover {
+            background: var(--maroon-deep);
+        }
+
+        .suggest-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: var(--paper-raised);
+            border: 1.5px solid var(--ink);
+            border-radius: 2px;
+            max-height: 280px;
+            overflow-y: auto;
+            z-index: 20;
+            box-shadow: 3px 3px 0 var(--line);
+            display: none;
+        }
+
+        .suggest-list.show {
+            display: block;
+        }
+
+        .suggest-list div {
+            padding: 9px 16px;
+            cursor: pointer;
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.98rem;
+            border-bottom: 1px solid var(--line-soft);
+        }
+
+        .suggest-list div:last-child {
+            border-bottom: none;
+        }
+
+        .suggest-list div:hover,
+        .suggest-list div.active {
+            background: var(--chip-bg);
+            color: var(--maroon-deep);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin: 14px 0 30px;
+        }
+
+        .quick-actions button {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--teal);
+            background: transparent;
+            border: 1px solid var(--teal);
+            padding: 7px 14px;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .quick-actions button:hover {
+            background: var(--teal);
+            color: var(--paper-raised);
+        }
+
+        /* ===== Result area ===== */
+        #result {
+            min-height: 200px;
+        }
+
+        .state-msg {
+            font-family: 'Source Serif 4', serif;
+            font-style: italic;
+            color: var(--ink-soft);
+            padding: 40px 0;
+            text-align: center;
+            font-size: 1.05rem;
+        }
+
+        .lemma-head {
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 10px;
+            margin-bottom: 18px;
+        }
+
+        .lemma-head h1 {
+            font-family: 'Source Serif 4', serif;
+            font-size: 2.1rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin: 0;
+            color: var(--maroon-deep);
+            overflow-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+        }
+
+        .lemma-head h1.lemma-sm {
+            font-size: 1.55rem;
+        }
+
+        .lemma-head h1.lemma-xs {
+            font-size: 1.25rem;
+        }
+
+        .lemma-head .count {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--ink-soft);
+            font-family: 'Inter', sans-serif;
+            margin-top: 6px;
+        }
+
+        .entry-card {
+            background: var(--paper-raised);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--maroon);
+            padding: 20px 22px;
+            margin-bottom: 18px;
+            border-radius: 0 3px 3px 0;
+        }
+
+        .entry-title-row {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .entry-title-row .entry-no {
+            font-family: 'Source Serif 4', serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .pronun {
+            font-style: italic;
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+        }
+
+        .base-word-note {
+            font-size: 0.88rem;
+            color: var(--ink-soft);
+            margin-bottom: 10px;
+        }
+
+        .base-word-note a,
+        .chip-link {
+            color: var(--maroon);
+            cursor: pointer;
+            text-decoration: none;
+            border-bottom: 1px dotted var(--maroon);
+        }
+
+        .base-word-note a:hover,
+        .chip-link:hover {
+            color: var(--maroon-deep);
+        }
+
+        ol.def-list {
+            margin: 10px 0 6px;
+            padding-left: 22px;
+        }
+
+        ol.def-list li {
+            margin-bottom: 12px;
+        }
+
+        .labels {
+            margin-right: 6px;
+        }
+
+        .label-badge {
+            display: inline-block;
+            position: relative;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: var(--teal);
+            border: 1px solid var(--teal);
+            border-radius: 3px;
+            padding: 1px 5px;
+            margin-right: 4px;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+        }
+
+        .label-badge::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 7px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ink);
+            color: #fff;
+            padding: 5px 9px;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            letter-spacing: normal;
+            white-space: nowrap;
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+        }
+
+        .label-badge::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: var(--ink);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.12s ease;
+        }
+
+        .label-badge:hover::after,
+        .label-badge:hover::before,
+        .label-badge.tooltip-active::after,
+        .label-badge.tooltip-active::before {
+            opacity: 1;
+        }
+
+        .def-text b {
+            color: var(--ink);
+        }
+
+        .def-text i {
+            color: var(--ink);
+        }
+
+        .usage-examples {
+            margin-top: 5px;
+            padding-left: 2px;
+            font-style: italic;
+            color: var(--ink-soft);
+            font-size: 0.93rem;
+        }
+
+        .usage-examples span::before {
+            content: "— ";
+            color: var(--gold);
+            font-style: normal;
+        }
+
+        .ref-lemma {
+            font-style: italic;
+        }
+
+        .precat-note {
+            font-style: italic;
+            color: var(--ink-soft);
+            font-size: 0.92rem;
+            margin: 6px 0 10px;
+        }
+
+        .word-groups {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--line);
+        }
+
+        .word-group-row {
+            display: flex;
+            gap: 8px;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .word-group-row .g-label {
+            color: var(--gold);
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            min-width: 118px;
+            flex-shrink: 0;
+        }
+
+        .chip {
+            display: inline-block;
+            background: var(--chip-bg);
+            border-radius: 100px;
+            padding: 2px 11px;
+            margin: 0 5px 5px 0;
+            font-family: 'Source Serif 4', serif;
+            font-size: 0.88rem;
+        }
+
+        footer.foot {
+            text-align: center;
+            margin-top: 60px;
+            font-size: 0.75rem;
+            color: var(--ink-soft);
+        }
+
+        footer.foot a {
+            color: var(--teal);
+        }
+
+        footer.foot div+div {
+            margin-top: 6px;
+        }
+
+        @media (max-width: 480px) {
+            header.brand {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            header.brand .subtitle {
+                text-align: left;
+            }
+
+            .lemma-head h1 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page">
+        <header class="brand">
+            <div class="title serif">KBBI<em>.</em></div>
+            <div class="subtitle">Kamus Besar<br>Bahasa Indonesia</div>
+        </header>
+
+        <div class="search-wrap">
+            <div class="search-box">
+                <input id="searchInput" type="text" placeholder="Cari kata, mis. apel, suka, aku…" autocomplete="off"
+                    aria-label="Cari kata">
+                <button class="go" id="searchBtn">CARI</button>
+            </div>
+            <div class="suggest-list" id="suggestList"></div>
+        </div>
+
+        <div class="quick-actions">
+            <button id="btnRandom">Kata Acak</button>
+            <button id="btnWotd">Kata Hari Ini</button>
+        </div>
+
+        <div id="result">
+            <div class="state-msg">Mulai dengan mencari sebuah kata, atau coba “Kata Hari Ini”.</div>
+        </div>
+
+        <footer class="foot">
+            <div>Data bersumber dari aplikasi resmi <a href="https://play.google.com/store/apps/details?id=yuku.kbbi5"
+                    target="_blank" rel="noopener">KBBI 6.1.0</a>,
+                dijadikan API oleh <a href="/" target="_blank" rel="noopener">raf555</a>.</div>
+            <div><a href="/swagger/index.html" target="_blank" rel="noopener">Dokumentasi API</a></div>
+        </footer>
+    </div>
+
+    <script>
+        const API_BASE = "/api/v1";
+        const resultEl = document.getElementById('result');
+        const searchInput = document.getElementById('searchInput');
+        const suggestList = document.getElementById('suggestList');
+        const searchBtn = document.getElementById('searchBtn');
+
+        let debounceTimer = null;
+        let activeSuggestIndex = -1;
+        let currentSuggestions = [];
+        let currentLemma = null; // normalized lemma currently on screen, to skip redundant re-searches
+
+        function escapeHtml(str) {
+            if (str === undefined || str === null) return '';
+            return String(str).replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+
+        function showState(msg, isError) {
+            resultEl.innerHTML = `<div class="state-msg" style="${isError ? 'color:#b3261e;' : ''}">${msg}</div>`;
+        }
+
+        function showLoading() {
+            showState('Memuat…', false);
+        }
+
+        async function fetchJson(url) {
+            const res = await fetch(url);
+            if (!res.ok) {
+                let msg = 'Terjadi kesalahan (' + res.status + ')';
+                try {
+                    const errBody = await res.json();
+                    if (errBody && errBody.message) msg = errBody.message;
+                } catch (e) { }
+                throw new Error(msg);
+            }
+            return res.json();
+        }
+
+        // ---------- Search suggestions ----------
+        searchInput.addEventListener('input', () => {
+            const caretStart = searchInput.selectionStart;
+            const caretEnd = searchInput.selectionEnd;
+            searchInput.value = searchInput.value.toLowerCase();
+            searchInput.setSelectionRange(caretStart, caretEnd);
+
+            const q = searchInput.value.trim();
+            clearTimeout(debounceTimer);
+            if (q.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            debounceTimer = setTimeout(() => runSuggest(q), 250);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (!suggestList.classList.contains('show')) {
+                if (e.key === 'Enter') {
+                    doSearch(searchInput.value.trim());
+                }
+                return;
+            }
+            const items = Array.from(suggestList.children);
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeSuggestIndex = Math.min(activeSuggestIndex + 1, items.length - 1);
+                updateActiveSuggestion(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSuggestIndex = Math.max(activeSuggestIndex - 1, 0);
+                updateActiveSuggestion(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeSuggestIndex >= 0 && currentSuggestions[activeSuggestIndex]) {
+                    doSearch(currentSuggestions[activeSuggestIndex]);
+                } else {
+                    doSearch(searchInput.value.trim());
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        function updateActiveSuggestion(items) {
+            items.forEach((el, i) => el.classList.toggle('active', i === activeSuggestIndex));
+            if (items[activeSuggestIndex]) items[activeSuggestIndex].scrollIntoView({ block: 'nearest' });
+        }
+
+        async function runSuggest(q) {
+            try {
+                const data = await fetchJson(`${API_BASE}/entry/_search?entry=${encodeURIComponent(q)}&limit=8`);
+                if (q !== searchInput.value.trim()) return; // stale response, input has changed since
+                const lemmas = (data && data.lemmas) || [];
+                renderSuggestions(lemmas);
+            } catch (e) {
+                if (q === searchInput.value.trim()) hideSuggestions();
+            }
+        }
+
+        function renderSuggestions(lemmas) {
+            currentSuggestions = lemmas;
+            activeSuggestIndex = -1;
+            if (!lemmas.length) {
+                hideSuggestions();
+                return;
+            }
+            suggestList.innerHTML = lemmas.map(l => `<div>${escapeHtml(l)}</div>`).join('');
+            Array.from(suggestList.children).forEach((el, i) => {
+                el.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    doSearch(lemmas[i]);
+                });
+            });
+            suggestList.classList.add('show');
+        }
+
+        function hideSuggestions() {
+            suggestList.classList.remove('show');
+            suggestList.innerHTML = '';
+            currentSuggestions = [];
+            activeSuggestIndex = -1;
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-wrap')) hideSuggestions();
+        });
+
+        searchBtn.addEventListener('click', () => doSearch(searchInput.value.trim()));
+
+        // ---------- URL state (?kata=...) ----------
+        const QUERY_PARAM = 'kata';
+
+        function updateUrl(word) {
+            const url = new URL(window.location.href);
+            url.searchParams.set(QUERY_PARAM, word);
+            history.pushState({ kata: word }, '', url);
+        }
+
+        function clearUrl() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete(QUERY_PARAM);
+            history.pushState({ kata: null }, '', url);
+        }
+
+        window.addEventListener('popstate', () => {
+            const word = new URLSearchParams(location.search).get(QUERY_PARAM);
+            if (word) {
+                doSearch(word, false);
+            } else {
+                loadWotd(false);
+            }
+        });
+
+        // ---------- Core actions ----------
+        async function doSearch(entry, updateHistory = true) {
+            if (!entry) return;
+            const normalized = entry.trim().toLowerCase();
+            if (normalized && normalized === currentLemma) {
+                // Same word already on screen, avoid a redundant network call.
+                hideSuggestions();
+                searchInput.value = entry.toLowerCase();
+                return;
+            }
+            hideSuggestions();
+            searchInput.value = entry.toLowerCase();
+            showLoading();
+            try {
+                const data = await fetchJson(`${API_BASE}/entry/${encodeURIComponent(entry)}?raw=true`);
+                renderLemma(data);
+                currentLemma = normalized;
+                if (updateHistory) updateUrl(entry);
+            } catch (e) {
+                showState(`Kata “${escapeHtml(entry)}” tidak ditemukan dalam KBBI.`, true);
+                if (updateHistory) updateUrl(entry);
+            }
+        }
+
+        document.getElementById('btnRandom').addEventListener('click', async () => {
+            showLoading();
+            try {
+                const data = await fetchJson(`${API_BASE}/entry/_random?raw=true&noredirect=true`);
+                searchInput.value = (data.lemma || '').toLowerCase();
+                renderLemma(data);
+                if (data.lemma) {
+                    currentLemma = data.lemma.trim().toLowerCase();
+                    updateUrl(data.lemma);
+                }
+            } catch (e) {
+                showState('Gagal memuat kata acak. Coba lagi.', true);
+            }
+        });
+
+        document.getElementById('btnWotd').addEventListener('click', () => loadWotd());
+
+        async function loadWotd(updateHistory = true) {
+            showLoading();
+            try {
+                const data = await fetchJson(`${API_BASE}/entry/_wotd?raw=true&noredirect=true`);
+                searchInput.value = (data.lemma || '').toLowerCase();
+                renderLemma(data, true);
+                currentLemma = (data.lemma || '').trim().toLowerCase();
+                if (updateHistory) clearUrl();
+            } catch (e) {
+                showState('Gagal memuat kata hari ini. Coba lagi.', true);
+            }
+        }
+
+
+        // ---------- Rendering ----------
+        function renderLemma(lemma, isWotd) {
+            if (!lemma || !lemma.entries || !lemma.entries.length) {
+                showState('Tidak ada data untuk kata ini.', true);
+                return;
+            }
+            const len = (lemma.lemma || '').length;
+            const sizeClass = len > 45 ? 'lemma-xs' : len > 28 ? 'lemma-sm' : '';
+            const entriesHtml = lemma.entries.map(renderEntry).join('');
+            resultEl.innerHTML = `
+    <div class="lemma-head">
+      <h1 class="${sizeClass}">${escapeHtml(lemma.lemma)}</h1>
+      <span class="count">${isWotd ? 'Kata Hari Ini · ' : ''}${lemma.entries.length} entri</span>
+    </div>
+    ${entriesHtml}
+  `;
+            attachChipHandlers();
+        }
+
+        function renderEntry(entry) {
+            const pron = entry.pronunciation ? `<span class="pronun">/${escapeHtml(entry.pronunciation)}/</span>` : '';
+
+            let baseWordNote = '';
+            if (entry.baseWord) {
+                baseWordNote = `<div class="base-word-note">Kata dasar: <a class="chip-link" data-word="${escapeHtml(entry.baseWord)}">${escapeHtml(entry.baseWord)}</a></div>`;
+            }
+
+            let defsHtml = '';
+            if (entry.definitions && entry.definitions.length) {
+                defsHtml = '<ol class="def-list">' + entry.definitions.map(renderDefinition).join('') + '</ol>';
+            } else if (entry.isPrecategorical) {
+                defsHtml = '<div class="precat-note">Bentuk prakategorial — tidak memiliki makna tersendiri, muncul dalam kata turunan di bawah.</div>';
+            }
+
+            const groups = [
+                ['Kata Turunan', entry.derivedWords],
+                ['Gabungan Kata', entry.compoundWords],
+                ['Varian', entry.variants],
+                ['Varian Entri', entry.entryVariants],
+                ['Bentuk Tidak Baku', entry.nonStandardWords],
+                ['Kiasan', entry.metaphors],
+                ['Peribahasa', entry.proverbs],
+            ].filter(([, arr]) => arr && arr.length);
+
+            let groupsHtml = '';
+            if (groups.length) {
+                groupsHtml = '<div class="word-groups">' + groups.map(([label, arr]) => `
+      <div class="word-group-row">
+        <span class="g-label">${label}</span>
+        <span>${arr.map(w => `<span class="chip"><span class="chip-link" data-word="${escapeHtml(stripEntryNo(w))}">${escapeHtml(w)}</span></span>`).join('')}</span>
+      </div>
+    `).join('') + '</div>';
+            }
+
+            return `
+    <div class="entry-card">
+      <div class="entry-title-row">
+        <span class="entry-no serif">${escapeHtml(entry.entry)}</span>
+        ${pron}
+      </div>
+      ${baseWordNote}
+      ${defsHtml}
+      ${groupsHtml}
+    </div>
+  `;
+        }
+
+        function linkifyReferencedLemma(text, lemma) {
+            if (!lemma) return text;
+            const escaped = lemma.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const re = new RegExp('\\b' + escaped + '\\b', 'i');
+            const linkHtml = `<span class="chip-link ref-lemma" data-word="${escapeHtml(lemma)}">${escapeHtml(lemma)}</span>`;
+            if (text && re.test(text)) {
+                return text.replace(re, linkHtml);
+            }
+            // Fallback: referencedLemma isn't found verbatim in the definition text
+            return (text ? text + ' ' : '') + `→ ${linkHtml}`;
+        }
+
+        function renderDefinition(def) {
+            const labels = (def.labels || []).map(l =>
+                `<span class="label-badge" data-tooltip="${escapeHtml(l.kind)}: ${escapeHtml(l.name)}">${escapeHtml(l.code)}</span>`
+            ).join('');
+
+            let bodyHtml = '';
+            if (def.referencedLemma) {
+                // definition may contain safe HTML tags (b/i) from raw=true
+                const withLink = linkifyReferencedLemma(def.definition || '', def.referencedLemma);
+                bodyHtml = `<span class="def-text">${withLink}</span>`;
+            } else {
+                // definition may contain safe HTML tags (b/i) from raw=true
+                bodyHtml = `<span class="def-text">${def.definition || ''}</span>`;
+            }
+
+            let examplesHtml = '';
+            if (def.usageExamples && def.usageExamples.length) {
+                examplesHtml = `<div class="usage-examples">${def.usageExamples.map(ex => `<span>${ex}</span>`).join('; ')}</div>`;
+            }
+
+            return `<li>${labels ? `<span class="labels">${labels}</span>` : ''}${bodyHtml}${examplesHtml}</li>`;
+        }
+
+        function stripEntryNo(word) {
+            return word.replace(/\s*\(\d+\)\s*$/, '');
+        }
+
+        function attachChipHandlers() {
+            document.querySelectorAll('.chip-link[data-word]').forEach(el => {
+                el.addEventListener('click', () => doSearch(el.getAttribute('data-word')));
+            });
+        }
+
+        resultEl.addEventListener('click', (e) => {
+            const badge = e.target.closest('.label-badge');
+            if (!badge) return;
+            e.stopPropagation();
+            const wasActive = badge.classList.contains('tooltip-active');
+            document.querySelectorAll('.label-badge.tooltip-active').forEach(b => b.classList.remove('tooltip-active'));
+            if (!wasActive) badge.classList.add('tooltip-active');
+        });
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.label-badge.tooltip-active').forEach(b => b.classList.remove('tooltip-active'));
+        });
+
+        // Desktop: hovering a different badge should retire a previously clicked (tooltip-active)
+        // one, otherwise its tap-triggered tooltip keeps showing alongside the hovered one.
+        resultEl.addEventListener('mouseover', (e) => {
+            const badge = e.target.closest('.label-badge');
+            if (!badge) return;
+            document.querySelectorAll('.label-badge.tooltip-active').forEach(b => {
+                if (b !== badge) b.classList.remove('tooltip-active');
+            });
+        });
+
+        // On load: restore lemma from URL (?kata=...) if present, otherwise show word of the day
+        const initialWord = new URLSearchParams(location.search).get(QUERY_PARAM);
+        if (initialWord) {
+            doSearch(initialWord, false);
+        } else {
+            loadWotd(false);
+        }
+    </script>
+
+</body>
+
+</html>

@@ -97,6 +97,9 @@ type (
 		Code  int
 		Path  string
 		Query url.Values
+		// When Response is present, RedirectHandler will send the response instead of redirecting (200).
+		// It will also include ('Cache-Control','no-store') and ('Content-Location',resolved [Path]) headers in the response.
+		Response any
 	}
 
 	// RedirectHandler is a simple HTTP request handler which accepts request and redirects into given path.
@@ -109,19 +112,30 @@ type (
 func MakeRedirectHandler[reqT any](
 	handler RedirectHandler[reqT],
 	requestBinder RequestBinder[reqT],
+	opts ...handlerOption,
 ) gin.HandlerFunc {
 	return func(gCtx *gin.Context) {
 		ctx := &ginCtx{gCtx}
 
 		req, err := requestBinder(ctx)
 		if err != nil {
-			sendResponse(ctx, (*struct{})(nil), err)
+			sendResponse(ctx, (*struct{})(nil), err, opts...)
 			return
 		}
 
 		result, err := handler(ctx, req)
 		if err != nil {
-			sendResponse(ctx, (*struct{})(nil), err)
+			sendResponse(ctx, (*struct{})(nil), err, opts...)
+			return
+		}
+
+		if result.Response != nil {
+			gCtx.Header("Cache-Control", "no-store")
+			if target, err := url.Parse(result.Path); err == nil {
+				target.RawQuery = result.Query.Encode()
+				gCtx.Header("Content-Location", gCtx.Request.URL.ResolveReference(target).RequestURI())
+			}
+			sendResponse(ctx, &result.Response, nil, opts...)
 			return
 		}
 

@@ -9,6 +9,8 @@ Probably the most complete public KBBI API you will ever find.
 
 ## Documentation
 
+- Web UI: [https://kbbi.raf555.dev/ui/](https://kbbi.raf555.dev/ui/)
+
 - Swagger docs: [https://kbbi.raf555.dev/swagger/index.html](https://kbbi.raf555.dev/swagger/index.html)
 
 - Sample API endpoint: [https://kbbi.raf555.dev/api/v1/entry/bermalas-malasan](https://kbbi.raf555.dev/api/v1/entry/bermalas-malasan)

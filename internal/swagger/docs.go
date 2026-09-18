@@ -28,6 +28,12 @@ const docTemplate = `{
                         "description": "if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead.",
                         "name": "raw",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "if noredirect is true, return the lemma instead of redirecting.",
+                        "name": "noredirect",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -106,6 +112,12 @@ const docTemplate = `{
                         "type": "boolean",
                         "description": "if raw is true, any rendered unicode character (for 𝗯𝗼𝗹𝗱/𝘪𝘵𝘢𝘭𝘪𝘤/etc) will be replaced by HTML tags instead.",
                         "name": "raw",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "if noredirect is true, return the lemma instead of redirecting.",
+                        "name": "noredirect",
                         "in": "query"
                     }
                 ],

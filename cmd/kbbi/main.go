@@ -8,6 +8,7 @@ import (
 	"github.com/raf555/kbbi-api/internal/home/homefx"
 	httpfx "github.com/raf555/kbbi-api/internal/http/fx"
 	"github.com/raf555/kbbi-api/internal/swagger/swaggerfx"
+	"github.com/raf555/kbbi-api/internal/ui/uifx"
 )
 
 func main() {
@@ -15,6 +16,7 @@ func main() {
 		dictionaryfx.Module,
 		homefx.Module,
 		swaggerfx.Module,
+		uifx.Module,
 		httpfx.ServerInvoker,
 	)
 
