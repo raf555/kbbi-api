@@ -98,6 +98,7 @@ type (
 		Path  string
 		Query url.Values
 		// When Response is present, RedirectHandler will send the response instead of redirecting (200).
+		// It will also include ('Cache-Control','no-store') and ('Content-Location',resolved [Path]) headers in the response.
 		Response any
 	}
 
@@ -129,6 +130,11 @@ func MakeRedirectHandler[reqT any](
 		}
 
 		if result.Response != nil {
+			gCtx.Header("Cache-Control", "no-store")
+			if target, err := url.Parse(result.Path); err == nil {
+				target.RawQuery = result.Query.Encode()
+				gCtx.Header("Content-Location", gCtx.Request.URL.ResolveReference(target).RequestURI())
+			}
 			sendResponse(ctx, &result.Response, nil, opts...)
 			return
 		}

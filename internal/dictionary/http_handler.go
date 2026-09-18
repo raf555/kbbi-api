@@ -147,15 +147,16 @@ func (h *HTTPHandler) Random(ctx context.Context, req *RandomRequest) (httphandl
 		Code: http.StatusFound,
 		Path: url.PathEscape(lemma.Lemma),
 	}
-	if req.NoRedirect {
-		res.Response = lemma.ToKBBI(req.Raw)
-		return res, nil
-	}
 
 	if req.Raw {
 		res.Query = url.Values{
 			"raw": []string{strconv.FormatBool(req.Raw)},
 		}
+	}
+
+	if req.NoRedirect {
+		res.Response = lemma.ToKBBI(req.Raw)
+		return res, nil
 	}
 
 	return res, nil
@@ -181,15 +182,16 @@ func (h *HTTPHandler) WOTD(ctx context.Context, req *WOTDRequest) (httphandler.R
 		Code: http.StatusFound,
 		Path: url.PathEscape(wotd.Lemma),
 	}
-	if req.NoRedirect {
-		res.Response = wotd.ToKBBI(req.Raw)
-		return res, nil
-	}
 
 	if req.Raw {
 		res.Query = url.Values{
 			"raw": []string{strconv.FormatBool(req.Raw)},
 		}
+	}
+
+	if req.NoRedirect {
+		res.Response = wotd.ToKBBI(req.Raw)
+		return res, nil
 	}
 
 	return res, nil
