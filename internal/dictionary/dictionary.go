@@ -87,10 +87,15 @@ func loadDictionary(plain io.Reader, wotd WOTDRepo) (*Dictionary, error) {
 			}
 		}
 
+		normalizedForm := Normalize(l.Lemma, true)
+		if normalizedForm == l.Lemma { // reuse lemma string when possible.
+			normalizedForm = l.Lemma
+		}
+
 		d.longestLemmaLength = max(d.longestLemmaLength, len(l.Lemma))
 		d.lemmas = append(d.lemmas, wrappedLemma{
 			Lemma:          l.compact(labels),
-			NormalizedForm: Normalize(l.Lemma, true),
+			NormalizedForm: normalizedForm,
 		})
 	}
 
@@ -234,7 +239,7 @@ func (d *Dictionary) LemmaOfTheDay() (Lemma, error) {
 // If prefix is empty, Search returns top limit lemmas.
 func (d *Dictionary) Search(prefix string, limit uint) []Lemma {
 	if prefix == "" {
-		return lo.Map(d.lemmas[:min(int(limit), len(d.lemmas))], func(lemma wrappedLemma, _ int) Lemma { return lemma.Lemma })
+		return lo.Map(d.lemmas[:min(limit, uint(len(d.lemmas)))], func(lemma wrappedLemma, _ int) Lemma { return lemma.Lemma })
 	}
 
 	prefix = strings.ToLower(Normalize(prefix, true))
