@@ -4,11 +4,6 @@ import (
 	"github.com/raf555/kbbi-api/pkg/kbbi"
 )
 
-type AssetData struct {
-	Stats  Stats   `json:"stats"`
-	Lemmas []Lemma `json:"lemmas"`
-}
-
 type Stats struct {
 	Edition    string `json:"edition"`
 	EntryCount int    `json:"entryCount"`
