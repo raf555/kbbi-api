@@ -6,7 +6,7 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/json"
+	"encoding/json/v2"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,7 +32,18 @@ func ReadAssetFromURL(url string, key, nonce []byte) *reader {
 	return &reader{"", "", url, key, nonce}
 }
 
+// To decodes the whole asset into target.
 func (r *reader) To(target any) error {
+	return r.Read(func(plain io.Reader) error {
+		if err := json.UnmarshalRead(plain, target); err != nil {
+			return fmt.Errorf("json.UnmarshalRead: %w", err)
+		}
+		return nil
+	})
+}
+
+// Read decrypts and decompresses the asset, then passes the plain JSON stream to decode.
+func (r *reader) Read(decode func(plain io.Reader) error) error {
 	var (
 		ciphertext []byte
 		err        error
@@ -58,8 +69,8 @@ func (r *reader) To(target any) error {
 		return fmt.Errorf("gzip.NewReader: %w", err)
 	}
 
-	if err = json.NewDecoder(gz).Decode(target); err != nil {
-		return fmt.Errorf("json.NewDecoder.Decode: %w", err)
+	if err = decode(gz); err != nil {
+		return err
 	}
 
 	_ = gz.Close()
@@ -107,7 +118,8 @@ func (r *reader) decrypt(key, nonce, ciphertext []byte) ([]byte, error) {
 		return nil, fmt.Errorf("cipher.NewGCM: %w", err)
 	}
 
-	plaintext, err := aesGCM.Open(nil, nonce, ciphertext, nil)
+	// Decrypt in place: the ciphertext isn't needed afterwards.
+	plaintext, err := aesGCM.Open(ciphertext[:0], nonce, ciphertext, nil)
 	if err != nil {
 		return nil, fmt.Errorf("aesGCM.Open: %w", err)
 	}

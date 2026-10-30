@@ -1,7 +1,10 @@
 package dictionary
 
 import (
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"fmt"
+	"io"
 	"log/slog"
 	"math/rand/v2"
 	"slices"
@@ -12,17 +15,16 @@ import (
 )
 
 type Dictionary struct {
-	wotd                   WOTDRepo
-	stats                  Stats
-	longestLemmaLength     int
-	inverseIndex           map[string]lemmaIndex
-	inverseNormalizedIndex map[string]lemmaIndex
-	lemmas                 []wrappedLemma
-}
-
-type lemmaIndex struct {
-	idx        int           // index in lemmas.
-	entryNoMap map[int][]int // key is entry number, starts from 1. value is the actual index in the entries.
+	wotd               WOTDRepo
+	stats              Stats
+	longestLemmaLength int
+	// lemmas keeps the asset order, which is sorted by NormalizedForm. Search depends on that.
+	lemmas []wrappedLemma
+	// index maps an exact lemma to its index in lemmas.
+	index map[string]int32
+	// normalizedIndex maps a lemma without diacritics to its index in lemmas.
+	// It only holds lemmas whose normalized form differs from the lemma (a few hundred).
+	normalizedIndex map[string]int32
 }
 
 type wrappedLemma struct {
@@ -35,8 +37,6 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 	start := time.Now()
 	logger.Info("Started reading dictionary asset")
 
-	var assetData AssetData
-
 	var reader *reader
 	if url := cfg.Dictionary.DownloadURL; url != "" {
 		logger.Info("reading dictionary asset from URL", slog.String("url", url))
@@ -45,68 +45,119 @@ func NewDictionary(cfg Configuration, logger *slog.Logger, wotd WOTDRepo) (*Dict
 		reader = ReadAsset("dict.db", cfg.AssetsDirectory, cfg.AssetsEncryptionKey, cfg.AssetsEncryptionIV)
 	}
 
-	if err := reader.To(&assetData); err != nil {
+	var dict *Dictionary
+	err := reader.Read(func(plain io.Reader) error {
+		var err error
+		dict, err = loadDictionary(plain, wotd)
+		return err
+	})
+	if err != nil {
 		return nil, fmt.Errorf("ReadAsset: %w", err)
 	}
 
 	logger.Info("Finished reading dictionary asset", slog.String("elapsed", time.Since(start).String()))
 
-	longestLemmaLength := 0
-	inverseIdx := make(map[string]lemmaIndex, len(assetData.Lemmas))
-	inverseNormalizedIndex := make(map[string]lemmaIndex)
-	lemmas := make([]wrappedLemma, 0, len(assetData.Lemmas))
+	return dict, nil
+}
 
-	for i, lemma := range assetData.Lemmas {
-		idx := lemmaIndex{
-			idx: i,
+// loadDictionary builds a Dictionary from the plain JSON asset.
+// Lemmas are converted to their compact form one at a time, so the decoded asset is never fully in memory.
+func loadDictionary(plain io.Reader, wotd WOTDRepo) (*Dictionary, error) {
+	d := &Dictionary{
+		wotd:            wotd,
+		normalizedIndex: map[string]int32{},
+	}
+	labels := labelInterner{}
+
+	add := func(l lemmaJSON) {
+		if d.lemmas == nil {
+			// "stats" comes before "lemmas" in the asset, so the count is known by now.
+			d.lemmas = make([]wrappedLemma, 0, d.stats.LemmaCount)
+			d.index = make(map[string]int32, d.stats.LemmaCount)
 		}
 
-		entryNoMap := map[int][]int{}
-
-		// lookup and map entry index if any
-		for j, def := range lemma.Entries {
-			_, entryNo, ok := FindEntryNoFromLemma(def.Entry)
-			if !ok {
-				continue
-			}
-
-			// there can be multiple entries with same number. E.g. ketak (4)
-			// could be misinput from KBBI but for now making the behavior the same as the website.
-			entryNoMap[entryNo] = append(entryNoMap[entryNo], j)
-		}
-
-		if len(entryNoMap) > 0 {
-			idx.entryNoMap = entryNoMap
-		}
-
-		inverseIdx[lemma.Lemma] = idx
-		if normalized := Normalize(lemma.Lemma, false); normalized != lemma.Lemma { // lemma has normalized form
-			// p.s. not removing punctuation here to make exact match.
-			// Don't want `s.t` to have the result of `st.` or other similar case since it's probably wrong.
-			// So for now only care for removing diacritics.
-			//
-			// If the inverseNormalizedIndex of the normalized lemma is already occupied, ignore (only use the first one).
-			if _, ok := inverseNormalizedIndex[normalized]; !ok {
-				inverseNormalizedIndex[normalized] = idx
+		idx := int32(len(d.lemmas))
+		d.index[l.Lemma] = idx
+		if normalized := Normalize(l.Lemma, false); normalized != l.Lemma {
+			// Only diacritics are removed, not punctuation, to keep the match exact.
+			// `s.t` should not resolve to `st.` or similar, since that is probably wrong.
+			// The first lemma with a given normalized form wins.
+			if _, ok := d.normalizedIndex[normalized]; !ok {
+				d.normalizedIndex[normalized] = idx
 			}
 		}
 
-		lemmaLength := len(lemma.Lemma)
-		longestLemmaLength = max(longestLemmaLength, lemmaLength)
-		lemmas = append(lemmas, wrappedLemma{
-			Lemma:          lemma,
-			NormalizedForm: Normalize(lemma.Lemma, true),
+		normalizedForm := Normalize(l.Lemma, true)
+		if normalizedForm == l.Lemma { // reuse lemma string when possible.
+			normalizedForm = l.Lemma
+		}
+
+		d.longestLemmaLength = max(d.longestLemmaLength, len(l.Lemma))
+		d.lemmas = append(d.lemmas, wrappedLemma{
+			Lemma:          l.compact(labels),
+			NormalizedForm: normalizedForm,
 		})
 	}
 
-	return &Dictionary{
-		wotd:                   wotd,
-		stats:                  assetData.Stats,
-		longestLemmaLength:     longestLemmaLength,
-		inverseIndex:           inverseIdx,
-		inverseNormalizedIndex: inverseNormalizedIndex,
-		lemmas:                 lemmas,
-	}, nil
+	if err := decodeDictionaryAsset(plain, &d.stats, add); err != nil {
+		return nil, err
+	}
+
+	return d, nil
+}
+
+// decodeDictionaryAsset reads `{"stats": ..., "lemmas": [...]}` and calls add for each lemma as it is decoded.
+func decodeDictionaryAsset(plain io.Reader, stats *Stats, add func(lemmaJSON)) error {
+	dec := jsontext.NewDecoder(plain)
+
+	if err := readDelim(dec, '{'); err != nil {
+		return err
+	}
+
+	for dec.PeekKind() != '}' {
+		name, err := dec.ReadToken()
+		if err != nil {
+			return fmt.Errorf("read field name: %w", err)
+		}
+
+		switch name.String() {
+		case "stats":
+			if err := json.UnmarshalDecode(dec, stats); err != nil {
+				return fmt.Errorf("decode stats: %w", err)
+			}
+		case "lemmas":
+			if err := readDelim(dec, '['); err != nil {
+				return err
+			}
+			for dec.PeekKind() != ']' {
+				var l lemmaJSON
+				if err := json.UnmarshalDecode(dec, &l); err != nil {
+					return fmt.Errorf("decode lemma: %w", err)
+				}
+				add(l)
+			}
+			if err := readDelim(dec, ']'); err != nil {
+				return err
+			}
+		default:
+			if err := dec.SkipValue(); err != nil {
+				return fmt.Errorf("skip %q: %w", name.String(), err)
+			}
+		}
+	}
+
+	return readDelim(dec, '}')
+}
+
+func readDelim(dec *jsontext.Decoder, want jsontext.Kind) error {
+	tok, err := dec.ReadToken()
+	if err != nil {
+		return fmt.Errorf("read %v: %w", want, err)
+	}
+	if tok.Kind() != want {
+		return fmt.Errorf("want %v, got %v", want, tok.Kind())
+	}
+	return nil
 }
 
 func (d *Dictionary) indexInDictRange(idx int) bool {
@@ -126,47 +177,44 @@ func (d *Dictionary) Lemma(lemma string, entryNo int) (Lemma, error) {
 		return Lemma{}, ErrLemmaTooLong
 	}
 
-	index, ok := d.lookupInverseIndex(lemma)
+	idx, ok := d.lookup(lemma)
 	if !ok {
 		return Lemma{}, ErrLemmaNotFound
 	}
 
-	lemmaData := d.lemmas[index.idx]
+	lemmaData := d.lemmas[idx].Lemma
 
 	if entryNo < 0 {
 		return Lemma{}, ErrUnexpectedEntryNumber
 	}
 
 	if entryNo > 0 {
-		entryIndexes, ok := index.entryNoMap[entryNo]
-		if !ok {
+		// There can be multiple entries with the same number, e.g. ketak (4).
+		// It could be a KBBI input mistake, but the website returns all of them, so do the same.
+		var entries []Entry
+		for _, entry := range lemmaData.Entries {
+			if _, no, ok := FindEntryNoFromLemma(entry.Entry); ok && no == entryNo {
+				entries = append(entries, entry)
+			}
+		}
+		if len(entries) == 0 {
 			return Lemma{}, ErrEntryNotFound
 		}
 
-		lemmaData.Entries = lo.Map(entryIndexes, func(idx int, _ int) Entry {
-			return lemmaData.Entries[idx]
-		})
+		lemmaData.Entries = entries
 	}
 
-	return lemmaData.Lemma, nil
+	return lemmaData, nil
 }
 
-func (d *Dictionary) lookupInverseIndex(lemma string) (lemmaIndex, bool) {
-	// lookup on exact index first
-	index, ok := d.inverseIndex[lemma]
-	if ok {
-		return index, true
+// lookup returns the index in d.lemmas of an exact match, falling back to the lemma without diacritics.
+func (d *Dictionary) lookup(lemma string) (int, bool) {
+	if idx, ok := d.index[lemma]; ok {
+		return int(idx), true
 	}
 
-	// if not found, normalize the lemma, and check on the normalized index
-	normalized := Normalize(lemma, false)
-	index, ok = d.inverseNormalizedIndex[normalized]
-	if ok {
-		return index, true
-	}
-
-	// otherwise not found
-	return lemmaIndex{}, false
+	idx, ok := d.normalizedIndex[Normalize(lemma, false)]
+	return int(idx), ok
 }
 
 func (d *Dictionary) RandomLemma() Lemma {
@@ -191,7 +239,7 @@ func (d *Dictionary) LemmaOfTheDay() (Lemma, error) {
 // If prefix is empty, Search returns top limit lemmas.
 func (d *Dictionary) Search(prefix string, limit uint) []Lemma {
 	if prefix == "" {
-		return lo.Map(d.lemmas[:min(int(limit), len(d.lemmas))], func(lemma wrappedLemma, _ int) Lemma { return lemma.Lemma })
+		return lo.Map(d.lemmas[:min(limit, uint(len(d.lemmas)))], func(lemma wrappedLemma, _ int) Lemma { return lemma.Lemma })
 	}
 
 	prefix = strings.ToLower(Normalize(prefix, true))
