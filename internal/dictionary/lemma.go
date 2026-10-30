@@ -21,12 +21,12 @@ type (
 		BaseWord      string
 		Pronunciation string
 		Definitions   []EntryDefinition
-		// related is nil when all of its lists are empty, which is true for ~90% of entries.
-		related          *entryRelated
+		// RelatedEntry is nil when all of its lists are empty, which is true for ~90% of entries.
+		RelatedEntry     *EntryRelated
 		IsPrecategorical bool
 	}
 
-	entryRelated struct {
+	EntryRelated struct {
 		EntryVariants    []string
 		NonStandardWords []string
 		WordVariants     []string
@@ -37,13 +37,19 @@ type (
 	}
 
 	EntryDefinition struct {
-		Definition      string `json:"definition"`
-		RawDefinition   string `json:"rawDefinition"`
-		ReferencedLemma string `json:"referencedLemma"`
+		Definition      string
+		ReferencedLemma string
 		// Labels may share its backing array with other definitions; never modify it.
-		Labels           []EntryLabel `json:"labels"`
-		UsageExamples    []string     `json:"usageExamples"`
-		RawUsageExamples []string     `json:"rawUsageExamples"`
+		Labels []EntryLabel
+		// Extra is nil when the definition has no usage examples and its raw text equals Definition,
+		// which is true for ~78% of definitions.
+		Extra *EntryDefinitionExtra
+	}
+
+	EntryDefinitionExtra struct {
+		RawDefinition    string
+		UsageExamples    []string
+		RawUsageExamples []string
 	}
 
 	EntryLabel struct {
@@ -61,23 +67,32 @@ type (
 	}
 
 	entryJSON struct {
-		Entry            string            `json:"entry"`
-		BaseWord         string            `json:"baseWord"`
-		EntryVariants    []string          `json:"entryVariants"`
-		Pronunciation    string            `json:"pronunciation"`
-		Definitions      []EntryDefinition `json:"definitions"`
-		NonStandardWords []string          `json:"nonStandardWords"`
-		WordVariants     []string          `json:"variants"`
-		CompoundWords    []string          `json:"compoundWords"`
-		DerivedWords     []string          `json:"derivedWords"`
-		Proverbs         []string          `json:"proverbs"`
-		Metaphors        []string          `json:"metaphors"`
-		IsPrecategorical bool              `json:"isPrecategorical"`
+		Entry            string           `json:"entry"`
+		BaseWord         string           `json:"baseWord"`
+		EntryVariants    []string         `json:"entryVariants"`
+		Pronunciation    string           `json:"pronunciation"`
+		Definitions      []definitionJSON `json:"definitions"`
+		NonStandardWords []string         `json:"nonStandardWords"`
+		WordVariants     []string         `json:"variants"`
+		CompoundWords    []string         `json:"compoundWords"`
+		DerivedWords     []string         `json:"derivedWords"`
+		Proverbs         []string         `json:"proverbs"`
+		Metaphors        []string         `json:"metaphors"`
+		IsPrecategorical bool             `json:"isPrecategorical"`
+	}
+
+	definitionJSON struct {
+		Definition       string       `json:"definition"`
+		RawDefinition    string       `json:"rawDefinition"`
+		ReferencedLemma  string       `json:"referencedLemma"`
+		Labels           []EntryLabel `json:"labels"`
+		UsageExamples    []string     `json:"usageExamples"`
+		RawUsageExamples []string     `json:"rawUsageExamples"`
 	}
 )
 
-// noRelated stands in for a nil [Entry.related] so responses still get empty lists instead of null.
-var noRelated = entryRelated{
+// noRelated stands in for a nil [Entry.RelatedEntry] so responses still get empty lists instead of null.
+var noRelated = EntryRelated{
 	EntryVariants:    []string{},
 	NonStandardWords: []string{},
 	WordVariants:     []string{},
@@ -100,15 +115,16 @@ func (l lemmaJSON) compact(labels labelInterner) Lemma {
 }
 
 func (e entryJSON) compact(labels labelInterner) Entry {
-	for i := range e.Definitions {
-		e.Definitions[i].Labels = labels.intern(e.Definitions[i].Labels)
+	definitions := make([]EntryDefinition, len(e.Definitions))
+	for i, d := range e.Definitions {
+		definitions[i] = d.compact(labels)
 	}
 
-	var related *entryRelated
+	var related *EntryRelated
 	hasRelated := len(e.EntryVariants) > 0 || len(e.NonStandardWords) > 0 || len(e.WordVariants) > 0 ||
 		len(e.CompoundWords) > 0 || len(e.DerivedWords) > 0 || len(e.Proverbs) > 0 || len(e.Metaphors) > 0
 	if hasRelated {
-		related = &entryRelated{
+		related = &EntryRelated{
 			EntryVariants:    e.EntryVariants,
 			NonStandardWords: e.NonStandardWords,
 			WordVariants:     e.WordVariants,
@@ -123,9 +139,32 @@ func (e entryJSON) compact(labels labelInterner) Entry {
 		Entry:            e.Entry,
 		BaseWord:         e.BaseWord,
 		Pronunciation:    e.Pronunciation,
-		Definitions:      e.Definitions,
-		related:          related,
+		Definitions:      definitions,
+		RelatedEntry:     related,
 		IsPrecategorical: e.IsPrecategorical,
+	}
+}
+
+func (d definitionJSON) compact(labels labelInterner) EntryDefinition {
+	// Only drop the extras when toKBBI can rebuild the same output without them.
+	// The usage lists must be non-nil: an asset without raw fields (e.g. 2023-10) serves them as null.
+	var extra *EntryDefinitionExtra
+	noExtra := d.RawDefinition == d.Definition &&
+		d.UsageExamples != nil && len(d.UsageExamples) == 0 &&
+		d.RawUsageExamples != nil && len(d.RawUsageExamples) == 0
+	if !noExtra {
+		extra = &EntryDefinitionExtra{
+			RawDefinition:    d.RawDefinition,
+			UsageExamples:    d.UsageExamples,
+			RawUsageExamples: d.RawUsageExamples,
+		}
+	}
+
+	return EntryDefinition{
+		Definition:      d.Definition,
+		ReferencedLemma: d.ReferencedLemma,
+		Labels:          labels.intern(d.Labels),
+		Extra:           extra,
 	}
 }
 
@@ -173,7 +212,7 @@ func (e Entry) toKBBI(raw bool) kbbi.Entry {
 		definitions[i] = e.Definitions[i].toKBBI(raw)
 	}
 
-	related := e.related
+	related := e.RelatedEntry
 	if related == nil {
 		related = &noRelated
 	}
@@ -200,11 +239,20 @@ func (d EntryDefinition) toKBBI(raw bool) kbbi.EntryDefinition {
 		labels[i] = d.Labels[i].toKBBI()
 	}
 
+	extra := d.Extra
+	if extra == nil {
+		extra = &EntryDefinitionExtra{
+			RawDefinition:    d.Definition,
+			UsageExamples:    []string{},
+			RawUsageExamples: []string{},
+		}
+	}
+
 	return kbbi.EntryDefinition{
-		Definition:      lo.Ternary(raw, d.RawDefinition, d.Definition),
+		Definition:      lo.Ternary(raw, extra.RawDefinition, d.Definition),
 		ReferencedLemma: d.ReferencedLemma,
 		Labels:          labels,
-		UsageExamples:   lo.Ternary(raw, d.RawUsageExamples, d.UsageExamples),
+		UsageExamples:   lo.Ternary(raw, extra.RawUsageExamples, extra.UsageExamples),
 	}
 }
 
