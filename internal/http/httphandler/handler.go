@@ -2,7 +2,6 @@ package httphandler
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/raf555/kbbi-api/internal/http/httperr"
 	"github.com/raf555/kbbi-api/internal/http/httpres"
 	"github.com/raf555/kbbi-api/internal/logger"
+	sloggin "github.com/samber/slog-gin"
 )
 
 // Handler is a simple HTTP request handler which accepts request and response.
@@ -60,12 +60,7 @@ func sendResponse[resT any](ctx *ginCtx, res *resT, err error, opts ...handlerOp
 	statusCodeMessage := http.StatusText(statusCode)
 
 	if err != nil {
-		l := logger.FromContext(ctx)
-		logFn := l.ErrorContext
-		if statusCode >= 400 && statusCode < 500 {
-			logFn = l.WarnContext
-		}
-		logFn(ctx, "HTTP error occurred", logger.Error(err), slog.Int("code", statusCode))
+		sloggin.AddCustomAttributes(ctx.Context, logger.Error(err))
 
 		innerErrMsg := statusCodeMessage
 

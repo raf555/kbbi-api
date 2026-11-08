@@ -38,22 +38,24 @@ var ServerInvoker = fx.Module(
 		}
 		return s
 	}),
-	fx.Invoke(func(ctx context.Context, conf httpsrv.Config, log *slog.Logger, hs *http.Server, shutdowner fx.Shutdowner) error {
-		srv, err := server.New(conf.Port)
-		if err != nil {
-			return fmt.Errorf("server.New: %w", err)
-		}
-
-		go func() {
-			err := srv.ServeHTTP(hs)
+	fx.Invoke(func(ctx context.Context, lc fx.Lifecycle, conf httpsrv.Config, log *slog.Logger, hs *http.Server, shutdowner fx.Shutdowner) {
+		lc.Append(fx.StartHook(func(startCtx context.Context) error {
+			srv, err := server.New(conf.Port)
 			if err != nil {
-				log.ErrorContext(ctx, "http server exited unexpectedly", logger.Error(err))
-				_ = shutdowner.Shutdown(fx.ExitCode(1))
+				return fmt.Errorf("server.New: %w", err)
 			}
-		}()
 
-		log.InfoContext(ctx, "listening http...", slog.Int("port", conf.Port))
+			go func() {
+				err := srv.ServeHTTP(hs)
+				if err != nil {
+					log.ErrorContext(ctx, "http server exited unexpectedly", logger.Error(err))
+					_ = shutdowner.Shutdown(fx.ExitCode(1))
+				}
+			}()
 
-		return nil
+			log.InfoContext(startCtx, "listening http...", slog.Int("port", conf.Port))
+
+			return nil
+		}))
 	}),
 )
