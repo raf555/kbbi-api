@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: "0 1 * * *" # daily, 08:00 WIB
   workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths: ["README.md"]
 
 permissions:
   contents: read
@@ -66,6 +69,10 @@ jobs:
           newest=$(printf '%s\n%s\n' "$ours" "$latest" | sort -V | tail -n1)
           if [ "$latest" = "$ours" ] || [ "$newest" != "$latest" ]; then
             echo "Up to date"
+            # README caught up, so close any update issue left open.
+            for number in $(gh issue list --state open --label "$LABEL" --json number --jq '.[].number'); do
+              gh issue close "$number" --reason completed --comment "README.md now says \`v${ours}\`, which matches the Play Store."
+            done
             exit 0
           fi
 
