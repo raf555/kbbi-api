@@ -1,0 +1,94 @@
+name: KBBI Version Check
+
+on:
+  schedule:
+    - cron: "0 1 * * *" # daily, 08:00 WIB
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare Play Store version with README
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_ID: yuku.kbbi5
+          LABEL: kbbi-update
+        run: |
+          set -euo pipefail
+          export LC_ALL=C.UTF-8
+          semver='[0-9]+(\.[0-9]+){1,3}'
+
+          # The README line looks like: mirrored from [Official KBBI Application][] `v6.1.0`
+          ours=$(grep -m1 'mirrored from \[Official KBBI Application\]' README.md | grep -oP "\`v?\K${semver}(?=\`)" || true)
+          if [ -z "$ours" ]; then
+            echo "::error file=README.md::Could not find the KBBI app version in README.md"
+            exit 1
+          fi
+
+          # The Play Store page embeds the current version as [[["X.Y.Z"]],[[[
+          # Try a few locales, since Google sometimes serves a different page variant.
+          latest=""
+          for hl in en id en_US; do
+            page=$(curl -fsSL --retry 3 --retry-delay 5 --retry-all-errors --max-time 30 \
+              -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36" \
+              "https://play.google.com/store/apps/details?id=${APP_ID}&hl=${hl}&gl=ID" || true)
+            latest=$(grep -oP "\[\[\[\"\K${semver}(?=\"\]\],\[\[\[)" <<<"$page" | head -n1 || true)
+            [ -n "$latest" ] && break
+            echo "::warning::No version found on the Play Store page for hl=${hl}"
+          done
+          if [ -z "$latest" ]; then
+            echo "::error::Could not read the version from the Play Store page. The page layout may have changed."
+            exit 1
+          fi
+
+          echo "ours=v${ours} play store=v${latest}"
+          {
+            echo "| Source | Version |"
+            echo "| --- | --- |"
+            echo "| README.md | v${ours} |"
+            echo "| Play Store | v${latest} |"
+          } >>"$GITHUB_STEP_SUMMARY"
+
+          # Only act when the Play Store is ahead. Google sometimes serves a stale version.
+          newest=$(printf '%s\n%s\n' "$ours" "$latest" | sort -V | tail -n1)
+          if [ "$latest" = "$ours" ] || [ "$newest" != "$latest" ]; then
+            echo "Up to date"
+            exit 0
+          fi
+
+          gh label create "$LABEL" --color FBCA04 --description "New KBBI app version on the Play Store" --force
+
+          title="Update dictionary to KBBI v${latest}"
+          body="The [KBBI app](https://play.google.com/store/apps/details?id=${APP_ID}) on the Play Store is at \`v${latest}\`. The README says the dictionary comes from \`v${ours}\`.
+
+          Update the dictionary assets and the version in README.md."
+
+          # Listing by label hits the API directly, so it sees issues created moments ago (search does not).
+          existing=$(gh issue list --state open --label "$LABEL" --limit 1 --json number,title --jq '.[0] // empty | "\(.number)\t\(.title)"')
+          if [ -z "$existing" ]; then
+            gh issue create --title "$title" --body "$body" --label "$LABEL"
+            exit 0
+          fi
+
+          number=${existing%%$'\t'*}
+          if [ "${existing#*$'\t'}" = "$title" ]; then
+            echo "Issue #${number} already tracks v${latest}"
+            exit 0
+          fi
+
+          # An older update issue is still open: move it to the newest version instead of opening another.
+          gh issue edit "$number" --title "$title" --body "$body"
+          gh issue comment "$number" --body "The Play Store now has \`v${latest}\`."
