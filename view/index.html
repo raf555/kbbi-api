@@ -515,6 +515,7 @@
         }
 
         function showState(msg, isError) {
+            currentLemma = null; // no lemma on screen anymore
             resultEl.innerHTML = `<div class="state-msg" style="${isError ? 'color:#b3261e;' : ''}">${msg}</div>`;
         }
 
@@ -690,11 +691,11 @@
 
         document.getElementById('btnWotd').addEventListener('click', () => loadWotd());
 
-        async function loadWotd(updateHistory = true) {
+        async function loadWotd(updateHistory = true, fillInput = true) {
             showLoading();
             try {
                 const data = await fetchJson(`${API_BASE}/entry/_wotd?raw=true&noredirect=true`);
-                searchInput.value = (data.lemma || '').toLowerCase();
+                if (fillInput) searchInput.value = (data.lemma || '').toLowerCase();
                 renderLemma(data, true);
                 currentLemma = (data.lemma || '').trim().toLowerCase();
                 if (updateHistory) clearUrl();
@@ -844,7 +845,8 @@
         if (initialWord) {
             doSearch(initialWord, false);
         } else {
-            loadWotd(false);
+            // Keep the input empty so the user can start typing right away.
+            loadWotd(false, false);
         }
     </script>
 
